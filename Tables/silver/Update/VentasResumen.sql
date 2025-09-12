@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE silver.spVentasResumen_Insert
+CREATE OR ALTER PROCEDURE silver.spVentasResumen_Update
 AS
 BEGIN
 	DECLARE @ResultMessage VARCHAR(MAX) = 'No hay nuevos datos para añadir'
@@ -32,41 +32,69 @@ BEGIN
 						FROM 
 							bronze.VentasResumen m
 					)
-
 	SET @Date = @StartDate
+
 	BEGIN TRY
 		WHILE @Date <= @EndDate
+		BEGIN
+			SET @Year = YEAR(@Date)
+			SET @Month = MONTH(@Date)
+			SET @Day = DAY(@Date)
+			print @date
+			IF EXISTS (SELECT 
+							T1.letra
+							,T1.iddocumento
+							,T1.idempresa
+							,T1.idSucursal
+							,T1.nrodoc
+							,T1.serie
+							,T1.fechaComprobate
+							,T1.anulado
+						FROM
+							bronze.VentasResumen T1
+						WHERE
+							CONVERT(datetime2,T1.fechaComprobate,103) = @Date
+						EXCEPT
+						SELECT
+							T2.letra
+							,T2.iddocumento
+							,T2.idempresa
+							,T2.idSucursal
+							,T2.nrodoc
+							,T2.serie
+							,T2.fechaComprobate
+							,T2.anulado
+						FROM
+							gold.VentasResumen T2
+						WHERE
+							CONVERT(datetime2,T2.fechaComprobate,103) = @Date
+			)
 			BEGIN
-				SET @Year = YEAR(@Date)
-				SET @Month = MONTH(@Date)
-				SET @Day = DAY(@Date)
+				SET @SQL =
+					'
+					SELECT @Version = ISNULL(
+												(SELECT
+													MAX(result.filepath(1))
+												FROM
+													OPENROWSET(
+														BULK ''chess/parquet_files/ventasresumen/Year=' + CAST(@Year as VARCHAR(4)) +'/Month=' + CAST(@Month as VARCHAR(2)) + '/Day=' + CAST(@Day as VARCHAR(2)) + '/Ver=*/*/*.parquet'',
+														DATA_SOURCE=''eds_delfos'',
+														FORMAT=''PARQUET''
+													) AS result )
+												,0) + 1 
+					'
+				exec sp_executesql @SQL, N'@Version int output', @Version output
+				SET @folderName = CONCAT('/chess/parquet_files/ventasresumen/Year=',CAST(@Year as VARCHAR(4)), '/Month=', CAST(@Month as VARCHAR(2)),'/Day=',CAST(@Day as VARCHAR(2)) ,'/Ver=',CAST(@Version AS VARCHAR(10)),'/',@dateFormat,'/')
 
-				IF EXISTS (SELECT TOP 1 1
-									FROM
-										bronze.VentasResumen T1
-									LEFT JOIN gold.VentasResumen T2 ON ISNULL(T2.Letra,'') = ISNULL(T1.letra,'')
-															AND T2.IdDocumento = T1.iddocumento
-															AND T2.IdEmpresa = T1.idempresa
-															AND T2.idSucursal = T1.idSucursal
-															AND T2.NroDoc = T1.nrodoc
-															AND T2.Serie = T1.serie
-									WHERE
-										CONVERT(datetime2,T1.fechaComprobate,103) = @Date
-										AND T2.fechaComprobate IS NULL
-				)
-				BEGIN	
-					SET @Version = 1
-					SET @folderName = CONCAT('/chess/parquet_files/ventasresumen/Year=',CAST(@Year as VARCHAR(4)), '/Month=', CAST(@Month as VARCHAR(2)),'/Day=',CAST(@Day as VARCHAR(2)) ,'/Ver=',CAST(@Version AS VARCHAR(10)),'/',@dateFormat,'/')
-			
-					SET @SQL = '
-						CREATE EXTERNAL TABLE '+ @TableName +  
+				SET @SQL = '
+					CREATE EXTERNAL TABLE '+ @TableName +  
 						' WITH (
 							LOCATION = ''' + @folderName +''',
 							DATA_SOURCE = eds_delfos,  
 							FILE_FORMAT = eff_delfos_parquet
 						)  
-						AS
-						SELECT
+					AS
+					SELECT
 							T1.idEmpresa,
 							T1.dsEmpresa,
 							T1.idDocumento,
@@ -212,24 +240,42 @@ BEGIN
 							T1.DescripcionId,
 							T1.Identificador,'
 							+ CAST(@Version AS VARCHAR(10)) + ' AS Ver ' +
-					' FROM 
+				' FROM 
 							bronze.VentasResumen T1
-							LEFT JOIN gold.VentasResumen T2 ON ISNULL(T2.Letra,'''') = ISNULL(T1.letra,'''')
-														AND T2.IdDocumento = T1.iddocumento
-														AND T2.IdEmpresa = T1.idempresa
-														AND T2.idSucursal = T1.idSucursal
-														AND T2.NroDoc = T1.nrodoc
-														AND T2.Serie = T1.serie
 								WHERE
 									CONVERT(datetime2,T1.fechaComprobate,103) = CONVERT(datetime2,''' + CAST(@Date AS varchar(10)) + ''') ' + '
-									AND T2.fechaComprobate IS NULL
-					'
-					EXEC(@SQL)
-					EXEC helpers.DropExternalTable @TableName;				
-			
-				END	
-				SET @Date = DATEADD(day,1,@Date)
+									AND CHECKSUM(
+										T1.letra
+										,T1.iddocumento
+										,T1.idempresa
+										,T1.idSucursal
+										,T1.nrodoc
+										,T1.serie
+										,T1.fechaComprobate
+										,T1.anulado
+									) NOT IN
+								(
+									SELECT 
+										CHECKSUM(T2.letra
+										,T2.iddocumento
+										,T2.idempresa
+										,T2.idSucursal
+										,T2.nrodoc
+										,T2.serie
+										,T2.fechaComprobate
+										,T2.anulado)
+									FROM
+										gold.VentasResumen T2
+									WHERE
+										CONVERT(datetime2,T2.fechaComprobate,103) = CONVERT(datetime2,''' + CAST(@Date AS varchar(10)) + '''))
+				'
+		
+				EXEC(@SQL)
+				EXEC helpers.DropExternalTable @TableName;
 			END
+	
+			SET @Date = DATEADD(day,1,@Date)
+		END
 	END TRY
 	BEGIN CATCH
 		SET @ResultMessage = CONCAT(
@@ -240,6 +286,6 @@ BEGIN
 	SELECT 
 		@StartDateProc
 		, GETDATE()
-		,'silver.spVentasResumen_Insert' AS ProcedureName
+		,'silver.spVentasResumen_Update' AS ProcedureName
 		,@ResultMessage AS LogMessage
 END
