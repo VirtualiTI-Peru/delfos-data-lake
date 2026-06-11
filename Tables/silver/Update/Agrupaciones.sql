@@ -7,7 +7,7 @@ BEGIN
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
 	DECLARE @TableName as VARCHAR(100)
-	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddhhmmss')
+	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('agrupacion',@dateFormat)
 
 	IF EXISTS ( SELECT 
@@ -51,16 +51,16 @@ BEGIN
 					)  
 					AS
 						SELECT 
-							*,' 
+							T1.*,' 
 							+  CAST(@Version AS VARCHAR(10)) + ' AS Ver' + 
-						' FROM bronze.EAgrupacione
+						' FROM bronze.EAgrupacione T1
 						WHERE 
-							CHECKSUM(CONCAT(idFormaAgrupar,desFormaAgrupar,idArticulo,idAgrupacion,desAgrupacion)) NOT IN
+							CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idFormaAgrupar,''|'',T1.desFormaAgrupar,''|'',T1.idArticulo,''|'',T1.idAgrupacion,''|'',T1.desAgrupacion), '''')), 2) NOT IN
 							(
 								SELECT
-									CHECKSUM(CONCAT(idFormaAgrupar,desFormaAgrupar,idArticulo,idAgrupacion,desAgrupacion))
+									CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idFormaAgrupar,''|'',T2.desFormaAgrupar,''|'',T2.idArticulo,''|'',T2.idAgrupacion,''|'',T2.desAgrupacion), '''')), 2)
 								FROM
-									gold.Agrupacion
+									gold.Agrupacion T2
 							)
 				'
 	

@@ -13,6 +13,3 @@ DROP EXTERNAL TABLE [bronze].[Pedido]
 DROP EXTERNAL TABLE [bronze].[SegmentosMkt]
 DROP EXTERNAL TABLE [bronze].[SubCanalesMkt]
 DROP EXTERNAL TABLE [bronze].[VentasResumen]
-
-
-

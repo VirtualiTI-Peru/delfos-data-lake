@@ -1,16 +1,16 @@
-:setvar path "D:\Projects 2024\DelfosV2\DelfosDataLakeSetup\Tables\bronze"
-:r $(path)\CanalesMkt.sql
-:r $(path)\DsStock.sql
-:r $(path)\EAgrupacione.sql
-:r $(path)\EArticulo.sql
-:r $(path)\EClialias.sql
-:r $(path)\Ecliente.sql
-:r $(path)\EClientesRuta.sql
-:r $(path)\ECliFuerza.sql
-:r $(path)\EPersCom.sql
-:r $(path)\ERutasVenta.sql
-:r $(path)\Item.sql
-:r $(path)\Pedido.sql
-:r $(path)\SegmentosMkt.sql
-:r $(path)\SubCanalesMkt.sql
-:r $(path)\VentasResumen.sql
+:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-data-lake"
+:r $(SqlRoot)\Tables\bronze\CanalesMkt.sql
+:r $(SqlRoot)\Tables\bronze\DsStock.sql
+:r $(SqlRoot)\Tables\bronze\EAgrupacione.sql
+:r $(SqlRoot)\Tables\bronze\EArticulo.sql
+:r $(SqlRoot)\Tables\bronze\EClialias.sql
+:r $(SqlRoot)\Tables\bronze\ECliente.sql
+:r $(SqlRoot)\Tables\bronze\EClientesRuta.sql
+:r $(SqlRoot)\Tables\bronze\EClifuerza.sql
+:r $(SqlRoot)\Tables\bronze\EPersCom.sql
+:r $(SqlRoot)\Tables\bronze\ERutasVenta.sql
+:r $(SqlRoot)\Tables\bronze\Item.sql
+:r $(SqlRoot)\Tables\bronze\Pedido.sql
+:r $(SqlRoot)\Tables\bronze\SegmentosMkt.sql
+:r $(SqlRoot)\Tables\bronze\SubCanalesMkt.sql
+:r $(SqlRoot)\Tables\bronze\VentasResumen.sql

@@ -6,7 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
-	DECLARE @dateFormat AS varchar(12) = FORMAT(getdate(),'yyyyMMddhhmm')
+	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	DECLARE @TableName as VARCHAR(100)
 	SET @TableName = CONCAT('Articulo',@dateFormat)
 

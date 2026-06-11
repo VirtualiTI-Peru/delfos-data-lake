@@ -1,19 +1,37 @@
-:setvar path "D:\Projects 2024\DelfosV2\DelfosDataLakeSetup\Tables\silver\Initialize"
-:r $(path)\Agrupaciones.sql
-go
-:r $(path)\Articulo.sql
-go
-:r $(path)\Cliente.sql
-go
---:r $(path)\VentasResumen.sql
---go
+:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-data-lake"
 
-:setvar path "D:\Projects 2024\DelfosV2\DelfosDataLakeSetup\Tables\gold"
-:r $(path)\Agrupaciones.sql
+:r $(SqlRoot)\Tables\silver\Initialize\log.sql
 go
-:r $(path)\Articulo.sql
+:r $(SqlRoot)\Tables\silver\Initialize\Agrupaciones.sql
 go
-:r $(path)\Cliente.sql
+:r $(SqlRoot)\Tables\silver\Initialize\Articulo.sql
 go
---:r $(path)\VentasResumen.sql
---go
+:r $(SqlRoot)\Tables\silver\Initialize\Cliente.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\VentasResumen.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\DsStock.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\CanalesMkt.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\SegmentosMkt.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\SubCanalesMkt.sql
+go
+
+:r $(SqlRoot)\Tables\gold\Agrupaciones.sql
+go
+:r $(SqlRoot)\Tables\gold\Articulo.sql
+go
+:r $(SqlRoot)\Tables\gold\Cliente.sql
+go
+:r $(SqlRoot)\Tables\gold\VentasResumen.sql
+go
+:r $(SqlRoot)\Tables\gold\DsStock.sql
+go
+:r $(SqlRoot)\Tables\gold\CanalesMkt.sql
+go
+:r $(SqlRoot)\Tables\gold\SegmentosMkt.sql
+go
+:r $(SqlRoot)\Tables\gold\SubCanalesMkt.sql
+go

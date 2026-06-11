@@ -7,7 +7,7 @@ BEGIN
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
 	DECLARE @TableName as VARCHAR(100)
-	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddhhmmss')
+	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('articulo',@dateFormat)
 
 	IF EXISTS ( SELECT 
@@ -62,16 +62,16 @@ BEGIN
 					)  
 					AS
 						SELECT 
-							*,' 
+							T1.*,' 
 							+  CAST(@Version AS VARCHAR(10)) + ' AS Ver' + 
-						' FROM bronze.EArticulo
+						' FROM bronze.EArticulo T1
 						WHERE 
-							CHECKSUM(CONCAT(idArticulo,desArticulo,anulado,unidadesBulto,pesable,esAlcoholico,esComodatable,idPresentacionBulto,valorUnidadMedida,idArticuloEstadistico)) NOT IN
+							CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idArticulo,''|'',T1.desArticulo,''|'',T1.anulado,''|'',T1.unidadesBulto,''|'',T1.pesable,''|'',T1.esAlcoholico,''|'',T1.esComodatable,''|'',T1.idPresentacionBulto,''|'',T1.valorUnidadMedida,''|'',T1.idArticuloEstadistico), '''')), 2) NOT IN
 							(
 								SELECT
-									CHECKSUM(CONCAT(idArticulo,desArticulo,anulado,unidadesBulto,pesable,esAlcoholico,esComodatable,idPresentacionBulto,valorUnidadMedida,idArticuloEstadistico))
+									CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idArticulo,''|'',T2.desArticulo,''|'',T2.anulado,''|'',T2.unidadesBulto,''|'',T2.pesable,''|'',T2.esAlcoholico,''|'',T2.esComodatable,''|'',T2.idPresentacionBulto,''|'',T2.valorUnidadMedida,''|'',T2.idArticuloEstadistico), '''')), 2)
 								FROM
-									gold.Articulo
+									gold.Articulo T2
 							)
 				'
 			EXEC (@SQL)

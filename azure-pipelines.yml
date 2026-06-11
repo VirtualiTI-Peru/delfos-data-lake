@@ -1,0 +1,61 @@
+# Pipeline CI/CD para DelfosDataLakeSetup
+# Configurar variables secretas en Azure DevOps:
+#   SynapseServer, DatabaseName, AdlsContainerPath, MasterKeyPassword
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  SqlRoot: '.'
+
+stages:
+  - stage: Validate
+    displayName: 'Validar scripts SQL'
+    jobs:
+      - job: SyntaxCheck
+        displayName: 'Verificar archivos SQL'
+        steps:
+          - checkout: self
+          - powershell: |
+              $files = Get-ChildItem -Recurse -Filter *.sql | Where-Object { $_.FullName -notmatch '\\\.git\\' }
+              if ($files.Count -lt 40) { throw "Se esperaban al menos 40 archivos SQL, encontrados: $($files.Count)" }
+              Write-Host "OK: $($files.Count) archivos SQL encontrados"
+            displayName: 'Contar archivos SQL'
+
+  - stage: DeployDev
+    displayName: 'Desplegar en Synapse DEV'
+    dependsOn: Validate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeploySynapse
+        displayName: 'sqlcmd deploy'
+        environment: 'delfos-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - task: SqlAzureDacpacDeployment@1
+                  displayName: 'Ejecutar Deploy.sql'
+                  inputs:
+                    azureSubscription: '$(AzureServiceConnection)'
+                    AuthenticationType: 'servicePrincipal'
+                    ServerName: '$(SynapseServer)'
+                    DatabaseName: '$(DatabaseName)'
+                    deployType: 'sqlTask'
+                    SqlFile: 'Deploy.sql'
+                    SqlAdditionalArguments: '-v DatabaseName="$(DatabaseName)" -v AdlsContainerPath="$(AdlsContainerPath)" -v MasterKeyPassword="$(MasterKeyPassword)" -v SqlRoot="$(SqlRoot)"'
+                - task: SqlAzureDacpacDeployment@1
+                  displayName: 'Validar despliegue'
+                  inputs:
+                    azureSubscription: '$(AzureServiceConnection)'
+                    AuthenticationType: 'servicePrincipal'
+                    ServerName: '$(SynapseServer)'
+                    DatabaseName: '$(DatabaseName)'
+                    deployType: 'sqlTask'
+                    SqlFile: 'Misc/ValidateDeployment.sql'
