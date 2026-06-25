@@ -1,5 +1,5 @@
-:setvar pathInsert "C:\Projects\VirtualiTI\delfos\delfos-data-lake\Tables\silver\Insert"
-:setvar pathUpdate "C:\Projects\VirtualiTI\delfos\delfos-data-lake\Tables\silver\Update"
+:setvar pathInsert "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake\Tables\silver\Insert"
+:setvar pathUpdate "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake\Tables\silver\Update"
 
 :r $(pathInsert)\Agrupaciones.sql
 go

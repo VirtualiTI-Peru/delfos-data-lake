@@ -32,14 +32,14 @@ Ver [docs/BRONZE_PIPELINE_BACKLOG.md](docs/BRONZE_PIPELINE_BACKLOG.md) para enti
 ## Prerrequisitos Azure
 
 1. **Synapse workspace** con SQL pool dedicado
-2. **ADLS Gen2** (`adlsdelfosanalytics`) con contenedor/carpeta del cliente (ej. `codisal`)
+2. **ADLS Gen2** (`adlsdelfosanalytics`) con contenedor/carpeta del cliente (ej. `factoria`)
 3. **Managed Identity** del workspace con rol **Storage Blob Data Contributor** en el storage account
 4. CSV fuente cargados en `chess/source_files/` del contenedor ADLS
 
 ### Estructura ADLS esperada
 
 ```
-codisal/
+factoria/
   chess/
     source_files/          # CSV bronze (delimitador |, primera fila cabecera)
       VentasResumen.csv
@@ -58,8 +58,8 @@ codisal/
 
 | Variable | Ejemplo | Descripción |
 |----------|---------|-------------|
-| `DatabaseName` | `ldh_codisal` | Base de datos del SQL pool |
-| `AdlsContainerPath` | `https://adlsdelfosanalytics.blob.core.windows.net/codisal` | Ruta del external data source |
+| `DatabaseName` | `ldh_factoria` | Base de datos del SQL pool |
+| `AdlsContainerPath` | `https://adlsdelfosanalytics.blob.core.windows.net/factoria` | Ruta del external data source |
 | `MasterKeyPassword` | *(secreto)* | Password del Database Master Key — **nunca commitear** |
 | `SqlRoot` | `.` | Raíz del repo (para `:r` en sqlcmd) |
 
@@ -71,10 +71,10 @@ Desde la raíz del repositorio:
 cd DelfosDataLakeSetup-main
 
 sqlcmd -S <workspace>.sql.azuresynapse.net `
-  -d ldh_codisal `
+  -d ldh_factoria `
   -G `
-  -v DatabaseName="ldh_codisal" `
-  -v AdlsContainerPath="https://adlsdelfosanalytics.blob.core.windows.net/codisal" `
+  -v DatabaseName="ldh_factoria" `
+  -v AdlsContainerPath="https://adlsdelfosanalytics.blob.core.windows.net/factoria" `
   -v MasterKeyPassword="$env:DELFOS_MASTER_KEY_PASSWORD" `
   -v SqlRoot="." `
   -i Deploy.sql
@@ -87,7 +87,7 @@ Ejecutar los scripts en orden manualmente desde el editor SQL, comenzando por `I
 ### Validación post-despliegue
 
 ```powershell
-sqlcmd -S <workspace>.sql.azuresynapse.net -d ldh_codisal -G -i Misc\ValidateDeployment.sql
+sqlcmd -S <workspace>.sql.azuresynapse.net -d ldh_factoria -G -i Misc\ValidateDeployment.sql
 ```
 
 ### Orden de ejecución (Deploy.sql)

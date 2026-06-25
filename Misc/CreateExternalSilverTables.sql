@@ -1,4 +1,4 @@
-:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-data-lake"
+:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake"
 
 :r $(SqlRoot)\Tables\silver\Initialize\log.sql
 go

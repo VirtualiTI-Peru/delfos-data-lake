@@ -1,4 +1,4 @@
-:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-data-lake"
+:setvar SqlRoot "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake"
 :r $(SqlRoot)\Tables\bronze\CanalesMkt.sql
 :r $(SqlRoot)\Tables\bronze\DsStock.sql
 :r $(SqlRoot)\Tables\bronze\EAgrupacione.sql

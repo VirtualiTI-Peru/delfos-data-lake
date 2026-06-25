@@ -35,21 +35,33 @@ BEGIN
 	DECLARE @LogMessageText VARCHAR(MAX)
 	DECLARE @LogTableName VARCHAR(100)
 	DECLARE @LogRowNum INT = 0
+	DECLARE @LogMaxRowNum INT
 	DECLARE @LogPersistFailed BIT = 0
 
-	DECLARE log_cursor CURSOR LOCAL FAST_FORWARD FOR
-		SELECT StartDate, ProcedureName, LogMessage
-		FROM #TempTable
-		ORDER BY StartDate, ProcedureName
+	-- Synapse dedicated pool does not support @@FETCH_STATUS / cursors; use row-number iteration.
+	SELECT
+		ROW_NUMBER() OVER (ORDER BY StartDate, ProcedureName) AS RowNum,
+		StartDate,
+		ProcedureName,
+		LogMessage
+	INTO #LogRows
+	FROM #TempTable
 
-	OPEN log_cursor
-	FETCH NEXT FROM log_cursor INTO @LogStartDate, @LogProcedureName, @LogMessageText
+	SET @LogMaxRowNum = (SELECT MAX(RowNum) FROM #LogRows)
 
-	WHILE @@FETCH_STATUS = 0
+	WHILE @LogRowNum < @LogMaxRowNum
 	BEGIN
 		SET @LogRowNum = @LogRowNum + 1
+
+		SELECT
+			@LogStartDate = StartDate,
+			@LogProcedureName = ProcedureName,
+			@LogMessageText = LogMessage
+		FROM #LogRows
+		WHERE RowNum = @LogRowNum
+
 		SET @LogTableName = CONCAT('Log', @dateFormat, '_', @LogRowNum)
-		SET @LogMessageText = LEFT(REPLACE(REPLACE(@LogMessageText, '''', ''''''), CHAR(13), ''), CHAR(10), ''), 1024)
+		SET @LogMessageText = LEFT(REPLACE(REPLACE(REPLACE(@LogMessageText, '''', ''''''), CHAR(13), ''), CHAR(10), ''), 1024)
 
 		SET @SQL =
 			'CREATE EXTERNAL TABLE ' + @LogTableName +
@@ -73,12 +85,9 @@ BEGIN
 		BEGIN CATCH
 			SET @LogPersistFailed = 1
 		END CATCH
-
-		FETCH NEXT FROM log_cursor INTO @LogStartDate, @LogProcedureName, @LogMessageText
 	END
 
-	CLOSE log_cursor
-	DEALLOCATE log_cursor
+	DROP TABLE #LogRows
 
 	IF @LogPersistFailed = 1
 	BEGIN

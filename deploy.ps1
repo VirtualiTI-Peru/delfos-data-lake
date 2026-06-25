@@ -12,10 +12,10 @@ if (-not $env:DELFOS_MASTER_KEY_PASSWORD) {
 
 & sqlcmd `
   -S "delfos-synapse.sql.azuresynapse.net" `
-  -d "ldh_codisal" `
+  -d "ldh_factoria" `
   -G `
-  -v "DatabaseName=ldh_codisal" `
-  -v "AdlsContainerPath=https://delfosdatalakeaccount.blob.core.windows.net/codisal" `
+  -v "DatabaseName=ldh_factoria" `
+  -v "AdlsContainerPath=https://delfosdatalakeaccount.blob.core.windows.net/factoria" `
   -v "MasterKeyPassword=$($env:DELFOS_MASTER_KEY_PASSWORD)" `
   -v "SqlRoot=." `
   -i "Deploy.sql"

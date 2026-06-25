@@ -9,6 +9,7 @@ DROP VIEW IF EXISTS [gold].[CanalesMkt];
 DROP VIEW IF EXISTS [gold].[SegmentosMkt];
 DROP VIEW IF EXISTS [gold].[SubCanalesMkt];
 
+DROP EXTERNAL TABLE [logs].[Log];
 DROP EXTERNAL TABLE [silver].[EAgrupacione];
 DROP EXTERNAL TABLE [silver].[EArticulo];
 DROP EXTERNAL TABLE [silver].[Cliente];

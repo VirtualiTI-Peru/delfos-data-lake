@@ -3,15 +3,13 @@
   Ejecutar con sqlcmd pasando variables de entorno (nunca commitear MasterKeyPassword):
 
   sqlcmd -S <synapse-workspace>.sql.azuresynapse.net -d <DatabaseName> -G ^
-    -v DatabaseName="ldh_codisal" ^
-    -v AdlsContainerPath="https://adlsdelfosanalytics.blob.core.windows.net/codisal" ^
+    -v DatabaseName="ldh_factoria" ^
+    -v AdlsContainerPath="https://adlsdelfosanalytics.blob.core.windows.net/factoria" ^
     -v MasterKeyPassword="$(MasterKeyPassword)" ^
     -i InitializeDataLakeHouse.sql
 */
 
 --CREATE DATABASE $(DatabaseName) COLLATE Latin1_General_100_BIN2_UTF8
-USE ldh_codisal;
-
 IF NOT EXISTS (SELECT 1 FROM sys.symmetric_keys WHERE name = 'CP3H7nuep7AdqCqgmdPGwXdwGAYA8ZMF')
 BEGIN
     DECLARE @mkSql NVARCHAR(4000) = N'CREATE MASTER KEY ENCRYPTION BY PASSWORD = ''' + REPLACE('CP3H7nuep7AdqCqgmdPGwXdwGAYA8ZMF', '''', '''''') + '''';
@@ -43,7 +41,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.external_data_sources WHERE name = 'eds_delfos'
 BEGIN
     CREATE EXTERNAL DATA SOURCE eds_delfos
         WITH (
-            LOCATION   = 'https://delfosdatalakeaccount.blob.core.windows.net/codisal',
+            LOCATION   = 'https://delfosdatalakeaccount.blob.core.windows.net/factoria',
             CREDENTIAL = WorkspaceIdentity
         );
 END
