@@ -17,8 +17,10 @@ BEGIN
 	INSERT INTO #TempTable EXEC silver.spAgrupacion_Update
 	INSERT INTO #TempTable EXEC silver.spArticulo_Insert
 	INSERT INTO #TempTable EXEC silver.spArticulo_Update
+	INSERT INTO #TempTable EXEC silver.spArticulo_Anular
 	INSERT INTO #TempTable EXEC silver.spCliente_Insert
 	INSERT INTO #TempTable EXEC silver.spCliente_Update
+	INSERT INTO #TempTable EXEC silver.spCliente_Anular
 	INSERT INTO #TempTable EXEC silver.spVentasResumen_Insert
 	INSERT INTO #TempTable EXEC silver.spVentasResumen_Update
 	INSERT INTO #TempTable EXEC silver.spDsStock_Insert

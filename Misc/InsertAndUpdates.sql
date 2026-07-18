@@ -1,5 +1,6 @@
 :setvar pathInsert "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake\Tables\silver\Insert"
 :setvar pathUpdate "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake\Tables\silver\Update"
+:setvar pathAnular "C:\Projects\VirtualiTI\delfos\delfos-backend\delfos-data-lake\Tables\silver\Anular"
 
 :r $(pathInsert)\Agrupaciones.sql
 go
@@ -33,4 +34,9 @@ go
 :r $(pathUpdate)\SegmentosMkt.sql
 go
 :r $(pathUpdate)\SubCanalesMkt.sql
+go
+
+:r $(pathAnular)\Articulo.sql
+go
+:r $(pathAnular)\Cliente.sql
 go
