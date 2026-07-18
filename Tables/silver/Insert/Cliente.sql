@@ -17,6 +17,17 @@ BEGIN
 				WHERE T2.idCliente IS NULL
 	)
 	BEGIN
+		SET @Version = ISNULL(
+							(SELECT
+								MAX(result.filepath(1))
+							FROM
+								OPENROWSET(
+									BULK 'chess/parquet_files/cliente/Ver=*/*/*.parquet',
+									DATA_SOURCE='eds_delfos',
+									FORMAT='PARQUET'
+								) AS result )
+							,0) + 1
+
 		DECLARE @folderName as VARCHAR(100) = CONCAT('/chess/parquet_files/cliente/Ver=',@Version,'/',@dateFormat,'/')
 		BEGIN TRY
 			SET @SQL = 
@@ -35,6 +46,7 @@ BEGIN
 				'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
+			SET @ResultMessage = 'Ok'
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

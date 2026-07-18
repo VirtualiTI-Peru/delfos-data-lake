@@ -10,23 +10,17 @@ BEGIN
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('agrupacion',@dateFormat)
 
-	IF EXISTS ( SELECT 
-					[idFormaAgrupar]
-					,[desFormaAgrupar]
-					,[idArticulo]
-					,[idAgrupacion]
-					,[desAgrupacion]
-				FROM 
-					bronze.EAgrupacione
-				EXCEPT
-				SELECT 
-					[idFormaAgrupar]
-					,[desFormaAgrupar]
-					,[idArticulo]
-					,[idAgrupacion]
-					,[desAgrupacion]
-				FROM 
-					gold.Agrupacion
+	-- Solo filas cuya clave YA existe en gold y cambio algun atributo.
+	-- Evita que Update re-escriba altas (eso es responsabilidad de Insert).
+	IF EXISTS (
+		SELECT TOP 1 1
+		FROM bronze.EAgrupacione T1
+		INNER JOIN gold.Agrupacion T2
+			ON T2.idArticulo = T1.idArticulo
+			AND T2.idFormaAgrupar = T1.idFormaAgrupar
+			AND T2.idAgrupacion = T1.idAgrupacion
+		WHERE ISNULL(T1.desFormaAgrupar, '') <> ISNULL(T2.desFormaAgrupar, '')
+		   OR ISNULL(T1.desAgrupacion, '') <> ISNULL(T2.desAgrupacion, '')
 	)
 	BEGIN
 		SET @Version = ISNULL(
@@ -54,18 +48,17 @@ BEGIN
 							T1.*,' 
 							+  CAST(@Version AS VARCHAR(10)) + ' AS Ver' + 
 						' FROM bronze.EAgrupacione T1
-						WHERE 
-							CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idFormaAgrupar,''|'',T1.desFormaAgrupar,''|'',T1.idArticulo,''|'',T1.idAgrupacion,''|'',T1.desAgrupacion), '''')), 2) NOT IN
-							(
-								SELECT
-									CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idFormaAgrupar,''|'',T2.desFormaAgrupar,''|'',T2.idArticulo,''|'',T2.idAgrupacion,''|'',T2.desAgrupacion), '''')), 2)
-								FROM
-									gold.Agrupacion T2
-							)
+						INNER JOIN gold.Agrupacion T2
+							ON T2.idArticulo = T1.idArticulo
+							AND T2.idFormaAgrupar = T1.idFormaAgrupar
+							AND T2.idAgrupacion = T1.idAgrupacion
+						WHERE ISNULL(T1.desFormaAgrupar, '''') <> ISNULL(T2.desFormaAgrupar, '''')
+						   OR ISNULL(T1.desAgrupacion, '''') <> ISNULL(T2.desAgrupacion, '''')
 				'
 	
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
+			SET @ResultMessage = 'Ok'
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

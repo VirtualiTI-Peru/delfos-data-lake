@@ -10,33 +10,19 @@ BEGIN
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('articulo',@dateFormat)
 
-	IF EXISTS ( SELECT 
-					idArticulo
-					,desArticulo
-					,anulado
-					,unidadesBulto
-					,pesable
-					,esAlcoholico
-					,esComodatable
-					,idPresentacionBulto
-					,valorUnidadMedida
-					,idArticuloEstadistico
-				FROM 
-					bronze.EArticulo
-				EXCEPT
-				SELECT 
-					idArticulo
-					,desArticulo
-					,anulado
-					,unidadesBulto
-					,pesable
-					,esAlcoholico
-					,esComodatable
-					,idPresentacionBulto
-					,valorUnidadMedida
-					,idArticuloEstadistico
-				FROM 
-					gold.Articulo
+	IF EXISTS (
+		SELECT TOP 1 1
+		FROM bronze.EArticulo T1
+		INNER JOIN gold.Articulo T2 ON T2.idArticulo = T1.idArticulo
+		WHERE ISNULL(T1.desArticulo, '') <> ISNULL(T2.desArticulo, '')
+		   OR ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+		   OR ISNULL(T1.unidadesBulto, 0) <> ISNULL(T2.unidadesBulto, 0)
+		   OR ISNULL(T1.pesable, 0) <> ISNULL(T2.pesable, 0)
+		   OR ISNULL(T1.esAlcoholico, 0) <> ISNULL(T2.esAlcoholico, 0)
+		   OR ISNULL(T1.esComodatable, 0) <> ISNULL(T2.esComodatable, 0)
+		   OR ISNULL(T1.idPresentacionBulto, '') <> ISNULL(T2.idPresentacionBulto, '')
+		   OR ISNULL(T1.valorUnidadMedida, 0) <> ISNULL(T2.valorUnidadMedida, 0)
+		   OR ISNULL(T1.idArticuloEstadistico, 0) <> ISNULL(T2.idArticuloEstadistico, 0)
 	)
 	BEGIN
 		SET @Version = ISNULL(
@@ -65,17 +51,20 @@ BEGIN
 							T1.*,' 
 							+  CAST(@Version AS VARCHAR(10)) + ' AS Ver' + 
 						' FROM bronze.EArticulo T1
-						WHERE 
-							CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idArticulo,''|'',T1.desArticulo,''|'',T1.anulado,''|'',T1.unidadesBulto,''|'',T1.pesable,''|'',T1.esAlcoholico,''|'',T1.esComodatable,''|'',T1.idPresentacionBulto,''|'',T1.valorUnidadMedida,''|'',T1.idArticuloEstadistico), '''')), 2) NOT IN
-							(
-								SELECT
-									CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idArticulo,''|'',T2.desArticulo,''|'',T2.anulado,''|'',T2.unidadesBulto,''|'',T2.pesable,''|'',T2.esAlcoholico,''|'',T2.esComodatable,''|'',T2.idPresentacionBulto,''|'',T2.valorUnidadMedida,''|'',T2.idArticuloEstadistico), '''')), 2)
-								FROM
-									gold.Articulo T2
-							)
+						INNER JOIN gold.Articulo T2 ON T2.idArticulo = T1.idArticulo
+						WHERE ISNULL(T1.desArticulo, '''') <> ISNULL(T2.desArticulo, '''')
+						   OR ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+						   OR ISNULL(T1.unidadesBulto, 0) <> ISNULL(T2.unidadesBulto, 0)
+						   OR ISNULL(T1.pesable, 0) <> ISNULL(T2.pesable, 0)
+						   OR ISNULL(T1.esAlcoholico, 0) <> ISNULL(T2.esAlcoholico, 0)
+						   OR ISNULL(T1.esComodatable, 0) <> ISNULL(T2.esComodatable, 0)
+						   OR ISNULL(T1.idPresentacionBulto, '''') <> ISNULL(T2.idPresentacionBulto, '''')
+						   OR ISNULL(T1.valorUnidadMedida, 0) <> ISNULL(T2.valorUnidadMedida, 0)
+						   OR ISNULL(T1.idArticuloEstadistico, 0) <> ISNULL(T2.idArticuloEstadistico, 0)
 				'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
+			SET @ResultMessage = 'Ok'
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

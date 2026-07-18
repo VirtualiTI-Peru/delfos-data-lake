@@ -1,7 +1,7 @@
 CREATE OR ALTER PROCEDURE silver.spVentasResumen_Insert
 AS
 BEGIN
-	DECLARE @ResultMessage VARCHAR(MAX) = 'No hay nuevos datos para aùadir'
+	DECLARE @ResultMessage VARCHAR(MAX) = 'No hay nuevos datos para aÒadir'
 	DECLARE @StartDateProc DateTime = GETDATE()
 
 	DECLARE @StartDate DATE
@@ -47,7 +47,18 @@ BEGIN
 					AND T2.fechaComprobate IS NULL
 			)
 			BEGIN
-				SET @Version = 1
+				SET @SQL = '
+					SELECT @Version = ISNULL(
+						(SELECT MAX(result.filepath(1))
+						 FROM OPENROWSET(
+							BULK ''chess/parquet_files/ventasresumen/Year=' + CAST(@Year AS VARCHAR(4)) +
+							'/Month=' + CAST(@Month AS VARCHAR(2)) + '/Day=' + CAST(@Day AS VARCHAR(2)) +
+							'/Ver=*/*/*.parquet'',
+							DATA_SOURCE=''eds_delfos'',
+							FORMAT=''PARQUET''
+						 ) AS result), 0) + 1'
+				EXEC sp_executesql @SQL, N'@Version int OUTPUT', @Version OUTPUT
+
 				SET @folderName = CONCAT('/chess/parquet_files/ventasresumen/Year=', CAST(@Year AS VARCHAR(4)),
 					'/Month=', CAST(@Month AS VARCHAR(2)), '/Day=', CAST(@Day AS VARCHAR(2)),
 					'/Ver=', CAST(@Version AS VARCHAR(10)), '/', @dateFormat, '/')

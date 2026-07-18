@@ -11,17 +11,27 @@ BEGIN
 
 	SET @TableName = CONCAT('Agrupaciones',@dateFormat)
 
+	-- Clave de negocio alineada con gold.Agrupacion (sin desFormaAgrupar)
 	IF EXISTS ( SELECT TOP 1 1
 				FROM
 					bronze.EAgrupacione T1
 				LEFT JOIN gold.Agrupacion T2 ON		T2.IdArticulo = T1.IdArticulo
 												AND T2.idFormaAgrupar = T1.idFormaAgrupar
 												AND T2.idAgrupacion = T1.idAgrupacion
-												AND T2.desFormaAgrupar = T1.desFormaAgrupar
 				WHERE T2.IdArticulo IS NULL
 	)
 	BEGIN
-		SET @Version = 1
+		-- Misma logica de version que Update: nunca reutilizar Ver=1 si ya hay datos
+		SET @Version = ISNULL(
+							(SELECT
+								MAX(result.filepath(1))
+							FROM
+								OPENROWSET(
+									BULK 'chess/parquet_files/agrupacion/Ver=*/*/*.parquet',
+									DATA_SOURCE='eds_delfos',
+									FORMAT='PARQUET'
+								) AS result )
+							,0) + 1
 
 		DECLARE @folderName as VARCHAR(100) = CONCAT('/chess/parquet_files/agrupacion/Ver=',@Version,'/',@dateFormat,'/')
 	
@@ -40,7 +50,6 @@ BEGIN
 						LEFT JOIN gold.Agrupacion T2 ON		T2.IdArticulo = T1.IdArticulo
 														AND T2.idFormaAgrupar = T1.idFormaAgrupar
 														AND T2.idAgrupacion = T1.idAgrupacion
-														AND T2.desFormaAgrupar = T1.desFormaAgrupar
 						WHERE T2.IdArticulo IS NULL
 				'
 		

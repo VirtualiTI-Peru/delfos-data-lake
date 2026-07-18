@@ -10,11 +10,17 @@ BEGIN
 	SET @TableName = CONCAT('dsstock', @dateFormat)
 
 	IF EXISTS (
-		SELECT fecha, idDeposito, idAlmacen, idArticulo, fecVtoLote, cantBultos, cantUnidades
-		FROM bronze.DsStock
-		EXCEPT
-		SELECT fecha, idDeposito, idAlmacen, idArticulo, fecVtoLote, cantBultos, cantUnidades
-		FROM gold.DsStock
+		SELECT TOP 1 1
+		FROM bronze.DsStock T1
+		INNER JOIN gold.DsStock T2
+			ON T2.fecha = T1.fecha
+			AND T2.idDeposito = T1.idDeposito
+			AND T2.idAlmacen = T1.idAlmacen
+			AND T2.idArticulo = T1.idArticulo
+			AND ISNULL(T2.fecVtoLote, '1900-01-01') = ISNULL(T1.fecVtoLote, '1900-01-01')
+		WHERE ISNULL(T1.cantBultos, 0) <> ISNULL(T2.cantBultos, 0)
+		   OR ISNULL(T1.cantUnidades, 0) <> ISNULL(T2.cantUnidades, 0)
+		   OR ISNULL(T1.dsArticulo, '') <> ISNULL(T2.dsArticulo, '')
 	)
 	BEGIN
 		SET @Version = ISNULL(
@@ -37,26 +43,15 @@ BEGIN
 				AS
 				SELECT T1.*, ' + CAST(@Version AS VARCHAR(10)) + ' AS Ver
 				FROM bronze.DsStock T1
-				WHERE CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(
-					ISNULL(CONVERT(NVARCHAR(30), T1.fecha, 126), ''''),
-					''|'', ISNULL(CAST(T1.idDeposito AS NVARCHAR(20)), ''''),
-					''|'', ISNULL(CAST(T1.idAlmacen AS NVARCHAR(20)), ''''),
-					''|'', ISNULL(CAST(T1.idArticulo AS NVARCHAR(20)), ''''),
-					''|'', ISNULL(CONVERT(NVARCHAR(30), T1.fecVtoLote, 126), ''''),
-					''|'', ISNULL(CAST(T1.cantBultos AS NVARCHAR(20)), ''''),
-					''|'', ISNULL(CAST(T1.cantUnidades AS NVARCHAR(20)), '''')
-				), '''')), 2) NOT IN (
-					SELECT CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(
-						ISNULL(CONVERT(NVARCHAR(30), T2.fecha, 126), ''''),
-						''|'', ISNULL(CAST(T2.idDeposito AS NVARCHAR(20)), ''''),
-						''|'', ISNULL(CAST(T2.idAlmacen AS NVARCHAR(20)), ''''),
-						''|'', ISNULL(CAST(T2.idArticulo AS NVARCHAR(20)), ''''),
-						''|'', ISNULL(CONVERT(NVARCHAR(30), T2.fecVtoLote, 126), ''''),
-						''|'', ISNULL(CAST(T2.cantBultos AS NVARCHAR(20)), ''''),
-						''|'', ISNULL(CAST(T2.cantUnidades AS NVARCHAR(20)), '''')
-					), '''')), 2)
-					FROM gold.DsStock T2
-				)'
+				INNER JOIN gold.DsStock T2
+					ON T2.fecha = T1.fecha
+					AND T2.idDeposito = T1.idDeposito
+					AND T2.idAlmacen = T1.idAlmacen
+					AND T2.idArticulo = T1.idArticulo
+					AND ISNULL(T2.fecVtoLote, ''1900-01-01'') = ISNULL(T1.fecVtoLote, ''1900-01-01'')
+				WHERE ISNULL(T1.cantBultos, 0) <> ISNULL(T2.cantBultos, 0)
+				   OR ISNULL(T1.cantUnidades, 0) <> ISNULL(T2.cantUnidades, 0)
+				   OR ISNULL(T1.dsArticulo, '''') <> ISNULL(T2.dsArticulo, '''')'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
 			SET @ResultMessage = 'Datos actualizados correctamente'

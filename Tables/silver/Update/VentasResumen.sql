@@ -31,20 +31,25 @@ BEGIN
 			SET @Month = MONTH(@Date)
 			SET @Day = DAY(@Date)
 
+			-- Solo filas cuya clave YA existe en gold y cambio anulado/fecha
 			IF EXISTS (
-				SELECT
-					T1.letra, T1.iddocumento, T1.idempresa, T1.idSucursal,
-					T1.nrodoc, T1.serie, T1.idLinea, T1.idArticulo,
-					T1.fechaComprobate, T1.anulado
+				SELECT TOP 1 1
 				FROM bronze.VentasResumen T1
+				INNER JOIN gold.VentasResumen T2
+					ON ISNULL(T2.Letra, '') = ISNULL(T1.letra, '')
+					AND T2.IdDocumento = T1.iddocumento
+					AND T2.IdEmpresa = T1.idempresa
+					AND T2.idSucursal = T1.idSucursal
+					AND T2.NroDoc = T1.nrodoc
+					AND T2.Serie = T1.serie
+					AND T2.idLinea = T1.idLinea
+					AND T2.idArticulo = T1.idArticulo
 				WHERE CONVERT(datetime2, T1.fechaComprobate, 103) = @Date
-				EXCEPT
-				SELECT
-					T2.letra, T2.iddocumento, T2.idempresa, T2.idSucursal,
-					T2.nrodoc, T2.serie, T2.idLinea, T2.idArticulo,
-					T2.fechaComprobate, T2.anulado
-				FROM gold.VentasResumen T2
-				WHERE CONVERT(datetime2, T2.fechaComprobate, 103) = @Date
+					AND (
+						ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+						OR ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), '')
+							<> ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), '')
+					)
 			)
 			BEGIN
 				SET @SQL = '
@@ -75,33 +80,20 @@ BEGIN
 					AS
 					SELECT ' + @ColumnSelect + '
 					FROM bronze.VentasResumen T1
+					INNER JOIN gold.VentasResumen T2
+						ON ISNULL(T2.Letra, '''') = ISNULL(T1.letra, '''')
+						AND T2.IdDocumento = T1.iddocumento
+						AND T2.IdEmpresa = T1.idempresa
+						AND T2.idSucursal = T1.idSucursal
+						AND T2.NroDoc = T1.nrodoc
+						AND T2.Serie = T1.serie
+						AND T2.idLinea = T1.idLinea
+						AND T2.idArticulo = T1.idArticulo
 					WHERE CONVERT(datetime2, T1.fechaComprobate, 103) = CONVERT(datetime2, ''' + CAST(@Date AS VARCHAR(10)) + ''')
-						AND CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(
-							ISNULL(CAST(T1.letra AS NVARCHAR(10)), ''''),
-							''|'', ISNULL(CAST(T1.iddocumento AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.idempresa AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.idSucursal AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.nrodoc AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.serie AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.idLinea AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CAST(T1.idArticulo AS NVARCHAR(20)), ''''),
-							''|'', ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), ''''),
-							''|'', ISNULL(CAST(T1.anulado AS NVARCHAR(10)), '''')
-						), '''')), 2) NOT IN (
-							SELECT CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(
-								ISNULL(CAST(T2.letra AS NVARCHAR(10)), ''''),
-								''|'', ISNULL(CAST(T2.iddocumento AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.idempresa AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.idSucursal AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.nrodoc AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.serie AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.idLinea AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CAST(T2.idArticulo AS NVARCHAR(20)), ''''),
-								''|'', ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), ''''),
-								''|'', ISNULL(CAST(T2.anulado AS NVARCHAR(10)), '''')
-							), '''')), 2)
-							FROM gold.VentasResumen T2
-							WHERE CONVERT(datetime2, T2.fechaComprobate, 103) = CONVERT(datetime2, ''' + CAST(@Date AS VARCHAR(10)) + ''')
+						AND (
+							ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+							OR ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), '''')
+								<> ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), '''')
 						)'
 
 				EXEC (@SQL)

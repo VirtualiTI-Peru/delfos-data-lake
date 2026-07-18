@@ -10,9 +10,11 @@ BEGIN
 	SET @TableName = CONCAT('segmentosmkt', @dateFormat)
 
 	IF EXISTS (
-		SELECT idSegmentoMkt, desSegmentoMkt, compania FROM bronze.SegmentosMkt
-		EXCEPT
-		SELECT idSegmentoMkt, desSegmentoMkt, compania FROM gold.SegmentosMkt
+		SELECT TOP 1 1
+		FROM bronze.SegmentosMkt T1
+		INNER JOIN gold.SegmentosMkt T2 ON T2.idSegmentoMkt = T1.idSegmentoMkt
+		WHERE ISNULL(T1.desSegmentoMkt, '') <> ISNULL(T2.desSegmentoMkt, '')
+		   OR ISNULL(T1.compania, 0) <> ISNULL(T2.compania, 0)
 	)
 	BEGIN
 		SET @Version = ISNULL((SELECT MAX(result.filepath(1)) FROM OPENROWSET(
@@ -21,8 +23,9 @@ BEGIN
 		BEGIN TRY
 			SET @SQL = 'CREATE EXTERNAL TABLE ' + @TableName + ' WITH (LOCATION = ''' + @folderName + ''', DATA_SOURCE = eds_delfos, FILE_FORMAT = eff_delfos_parquet) AS
 				SELECT T1.*, ' + CAST(@Version AS VARCHAR(10)) + ' AS Ver FROM bronze.SegmentosMkt T1
-				WHERE CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idSegmentoMkt,''|'',T1.desSegmentoMkt,''|'',T1.compania), '''')), 2) NOT IN (
-					SELECT CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idSegmentoMkt,''|'',T2.desSegmentoMkt,''|'',T2.compania), '''')), 2) FROM gold.SegmentosMkt T2)'
+				INNER JOIN gold.SegmentosMkt T2 ON T2.idSegmentoMkt = T1.idSegmentoMkt
+				WHERE ISNULL(T1.desSegmentoMkt, '''') <> ISNULL(T2.desSegmentoMkt, '''')
+				   OR ISNULL(T1.compania, 0) <> ISNULL(T2.compania, 0)'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
 			SET @ResultMessage = 'Datos actualizados correctamente'

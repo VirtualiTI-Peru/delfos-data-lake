@@ -10,6 +10,8 @@ BEGIN
 
 	IF EXISTS (SELECT TOP 1 1 FROM bronze.SubCanalesMkt T1 LEFT JOIN gold.SubCanalesMkt T2 ON T2.idSubcanalMkt = T1.idSubcanalMkt WHERE T2.idSubcanalMkt IS NULL)
 	BEGIN
+		SET @Version = ISNULL((SELECT MAX(result.filepath(1)) FROM OPENROWSET(
+			BULK 'chess/parquet_files/subcanalesmkt/Ver=*/*/*.parquet', DATA_SOURCE = 'eds_delfos', FORMAT = 'PARQUET') AS result), 0) + 1
 		DECLARE @folderName VARCHAR(100) = CONCAT('/chess/parquet_files/subcanalesmkt/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
 			SET @SQL = 'CREATE EXTERNAL TABLE ' + @TableName + ' WITH (LOCATION = ''' + @folderName + ''', DATA_SOURCE = eds_delfos, FILE_FORMAT = eff_delfos_parquet) AS

@@ -10,33 +10,20 @@ BEGIN
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('cliente',@dateFormat)
 
-	IF EXISTS ( SELECT 
-					idSucursal
-					,idCliente
-					,anulado
-					,idAliasVigente
-					,idProvincia
-					,desProvincia
-					,desDepartamento
-					,idLocalidad
-					,desLocalidad
-					,desFormaPago
-				FROM 
-					bronze.ECliente
-				EXCEPT
-				SELECT 
-					idSucursal
-					,idCliente
-					,anulado
-					,idAliasVigente
-					,idProvincia
-					,desProvincia
-					,desDepartamento
-					,idLocalidad
-					,desLocalidad
-					,desFormaPago
-				FROM 
-					gold.Cliente
+	-- Solo claves que YA existen en gold y cambiaron atributos monitoreados
+	IF EXISTS (
+		SELECT TOP 1 1
+		FROM bronze.ECliente T1
+		INNER JOIN gold.Cliente T2 ON T2.idCliente = T1.idCliente
+		WHERE ISNULL(T1.idSucursal, 0) <> ISNULL(T2.idSucursal, 0)
+		   OR ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+		   OR ISNULL(T1.idAliasVigente, 0) <> ISNULL(T2.idAliasVigente, 0)
+		   OR ISNULL(T1.idProvincia, '') <> ISNULL(T2.idProvincia, '')
+		   OR ISNULL(T1.desProvincia, '') <> ISNULL(T2.desProvincia, '')
+		   OR ISNULL(T1.desDepartamento, '') <> ISNULL(T2.desDepartamento, '')
+		   OR ISNULL(T1.idLocalidad, 0) <> ISNULL(T2.idLocalidad, 0)
+		   OR ISNULL(T1.desLocalidad, '') <> ISNULL(T2.desLocalidad, '')
+		   OR ISNULL(T1.desFormaPago, '') <> ISNULL(T2.desFormaPago, '')
 	)
 	BEGIN
 		SET @Version = ISNULL(
@@ -64,17 +51,20 @@ BEGIN
 							T1.*,' 
 							+  CAST(@Version AS VARCHAR(10)) + ' AS Ver' + 
 						' FROM bronze.ECliente T1
-						WHERE 
-							CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T1.idSucursal,''|'',T1.idCliente,''|'',T1.anulado,''|'',T1.idAliasVigente,''|'',T1.idProvincia,''|'',T1.desProvincia,''|'',T1.desDepartamento,''|'',T1.idLocalidad,''|'',T1.desLocalidad,''|'',T1.desFormaPago), '''')), 2) NOT IN
-							(
-								SELECT
-									CONVERT(VARCHAR(64), HASHBYTES(''SHA2_256'', ISNULL(CONCAT(T2.idSucursal,''|'',T2.idCliente,''|'',T2.anulado,''|'',T2.idAliasVigente,''|'',T2.idProvincia,''|'',T2.desProvincia,''|'',T2.desDepartamento,''|'',T2.idLocalidad,''|'',T2.desLocalidad,''|'',T2.desFormaPago), '''')), 2)
-								FROM
-									gold.Cliente T2
-							)
+						INNER JOIN gold.Cliente T2 ON T2.idCliente = T1.idCliente
+						WHERE ISNULL(T1.idSucursal, 0) <> ISNULL(T2.idSucursal, 0)
+						   OR ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+						   OR ISNULL(T1.idAliasVigente, 0) <> ISNULL(T2.idAliasVigente, 0)
+						   OR ISNULL(T1.idProvincia, '''') <> ISNULL(T2.idProvincia, '''')
+						   OR ISNULL(T1.desProvincia, '''') <> ISNULL(T2.desProvincia, '''')
+						   OR ISNULL(T1.desDepartamento, '''') <> ISNULL(T2.desDepartamento, '''')
+						   OR ISNULL(T1.idLocalidad, 0) <> ISNULL(T2.idLocalidad, 0)
+						   OR ISNULL(T1.desLocalidad, '''') <> ISNULL(T2.desLocalidad, '''')
+						   OR ISNULL(T1.desFormaPago, '''') <> ISNULL(T2.desFormaPago, '''')
 				'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
+			SET @ResultMessage = 'Ok'
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

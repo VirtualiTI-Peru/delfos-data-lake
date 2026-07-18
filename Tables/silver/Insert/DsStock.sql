@@ -20,6 +20,14 @@ BEGIN
 		WHERE T2.fecha IS NULL
 	)
 	BEGIN
+		SET @Version = ISNULL(
+			(SELECT MAX(result.filepath(1))
+			 FROM OPENROWSET(
+				BULK 'chess/parquet_files/dsstock/Ver=*/*/*.parquet',
+				DATA_SOURCE = 'eds_delfos',
+				FORMAT = 'PARQUET'
+			 ) AS result), 0) + 1
+
 		DECLARE @folderName VARCHAR(100) = CONCAT('/chess/parquet_files/dsstock/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
 			SET @SQL = '
