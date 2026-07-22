@@ -6,6 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName as VARCHAR(100)
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('articulo',@dateFormat)
@@ -39,6 +40,19 @@ BEGIN
 		DECLARE @folderName as VARCHAR(100) = CONCAT('/chess/parquet_files/articulo/Ver=',@Version,'/',@dateFormat,'/')
 
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM bronze.EArticulo T1
+			INNER JOIN gold.Articulo T2 ON T2.idArticulo = T1.idArticulo
+			WHERE ISNULL(T1.desArticulo, '') <> ISNULL(T2.desArticulo, '')
+			   OR ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+			   OR ISNULL(T1.unidadesBulto, 0) <> ISNULL(T2.unidadesBulto, 0)
+			   OR ISNULL(T1.pesable, 0) <> ISNULL(T2.pesable, 0)
+			   OR ISNULL(T1.esAlcoholico, 0) <> ISNULL(T2.esAlcoholico, 0)
+			   OR ISNULL(T1.esComodatable, 0) <> ISNULL(T2.esComodatable, 0)
+			   OR ISNULL(T1.idPresentacionBulto, '') <> ISNULL(T2.idPresentacionBulto, '')
+			   OR ISNULL(T1.valorUnidadMedida, 0) <> ISNULL(T2.valorUnidadMedida, 0)
+			   OR ISNULL(T1.idArticuloEstadistico, 0) <> ISNULL(T2.idArticuloEstadistico, 0)
+
 			SET @SQL = 
 				'CREATE EXTERNAL TABLE '+ @TableName +   
 				' WITH (
@@ -64,7 +78,7 @@ BEGIN
 				'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
-			SET @ResultMessage = 'Ok'
+			SET @ResultMessage = CONCAT('Ok (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

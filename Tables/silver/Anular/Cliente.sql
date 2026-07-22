@@ -6,6 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName AS VARCHAR(100)
 	DECLARE @dateFormat AS VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
 	DECLARE @fechaBaja AS NVARCHAR(100) = CONVERT(VARCHAR(23), GETDATE(), 126)
@@ -37,6 +38,15 @@ BEGIN
 
 		DECLARE @folderName AS VARCHAR(100) = CONCAT('/chess/parquet_files/cliente/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM gold.Cliente T1
+			WHERE ISNULL(T1.anulado, 0) = 0
+			  AND NOT EXISTS (
+					SELECT 1
+					FROM bronze.ECliente B
+					WHERE B.idCliente = T1.idCliente
+			  )
+
 			SET @SQL =
 				'CREATE EXTERNAL TABLE ' + @TableName +
 				' WITH (
@@ -132,7 +142,7 @@ BEGIN
 						  )'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
-			SET @ResultMessage = 'Clientes marcados como anulados (ausentes en bronze)'
+			SET @ResultMessage = CONCAT('Clientes marcados como anulados (ausentes en bronze) (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

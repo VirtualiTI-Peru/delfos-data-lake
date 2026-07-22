@@ -6,6 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName AS VARCHAR(100)
 	DECLARE @dateFormat AS VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('articuloAnular', @dateFormat)
@@ -36,6 +37,15 @@ BEGIN
 
 		DECLARE @folderName AS VARCHAR(100) = CONCAT('/chess/parquet_files/articulo/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM gold.Articulo T1
+			WHERE ISNULL(T1.anulado, 0) = 0
+			  AND NOT EXISTS (
+					SELECT 1
+					FROM bronze.EArticulo B
+					WHERE B.idArticulo = T1.idArticulo
+			  )
+
 			SET @SQL =
 				'CREATE EXTERNAL TABLE ' + @TableName +
 				' WITH (
@@ -106,7 +116,7 @@ BEGIN
 						  )'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
-			SET @ResultMessage = 'Articulos marcados como anulados (ausentes en bronze)'
+			SET @ResultMessage = CONCAT('Articulos marcados como anulados (ausentes en bronze) (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

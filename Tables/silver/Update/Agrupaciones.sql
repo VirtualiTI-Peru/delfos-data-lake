@@ -6,6 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName as VARCHAR(100)
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('agrupacion',@dateFormat)
@@ -36,6 +37,15 @@ BEGIN
         
 		DECLARE @folderName as VARCHAR(100) = CONCAT('/chess/parquet_files/agrupacion/Ver=',@Version,'/',@dateFormat,'/')
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM bronze.EAgrupacione T1
+			INNER JOIN gold.Agrupacion T2
+				ON T2.idArticulo = T1.idArticulo
+				AND T2.idFormaAgrupar = T1.idFormaAgrupar
+				AND T2.idAgrupacion = T1.idAgrupacion
+			WHERE ISNULL(T1.desFormaAgrupar, '') <> ISNULL(T2.desFormaAgrupar, '')
+			   OR ISNULL(T1.desAgrupacion, '') <> ISNULL(T2.desAgrupacion, '')
+
 			SET @SQL = 
 				'CREATE EXTERNAL TABLE '+ @TableName +   
 				' WITH (
@@ -58,7 +68,7 @@ BEGIN
 	
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
-			SET @ResultMessage = 'Ok'
+			SET @ResultMessage = CONCAT('Ok (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

@@ -5,6 +5,7 @@ BEGIN
 	DECLARE @StartDateProc DateTime = GETDATE()
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName VARCHAR(100)
 	DECLARE @dateFormat VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('dsstock', @dateFormat)
@@ -33,6 +34,18 @@ BEGIN
 
 		DECLARE @folderName VARCHAR(100) = CONCAT('/chess/parquet_files/dsstock/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM bronze.DsStock T1
+			INNER JOIN gold.DsStock T2
+				ON T2.fecha = T1.fecha
+				AND T2.idDeposito = T1.idDeposito
+				AND T2.idAlmacen = T1.idAlmacen
+				AND T2.idArticulo = T1.idArticulo
+				AND ISNULL(T2.fecVtoLote, '1900-01-01') = ISNULL(T1.fecVtoLote, '1900-01-01')
+			WHERE ISNULL(T1.cantBultos, 0) <> ISNULL(T2.cantBultos, 0)
+			   OR ISNULL(T1.cantUnidades, 0) <> ISNULL(T2.cantUnidades, 0)
+			   OR ISNULL(T1.dsArticulo, '') <> ISNULL(T2.dsArticulo, '')
+
 			SET @SQL = '
 				CREATE EXTERNAL TABLE ' + @TableName + '
 				WITH (
@@ -54,7 +67,7 @@ BEGIN
 				   OR ISNULL(T1.dsArticulo, '''') <> ISNULL(T2.dsArticulo, '''')'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
-			SET @ResultMessage = 'Datos actualizados correctamente'
+			SET @ResultMessage = CONCAT('Datos actualizados correctamente (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT('Error No: ', ERROR_NUMBER(), ' Message: ', ERROR_MESSAGE())

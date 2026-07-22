@@ -6,6 +6,7 @@ BEGIN
 
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @dateFormat AS varchar(14) = FORMAT(getdate(),'yyyyMMddHHmmss')
 	DECLARE @TableName as VARCHAR(100)
 	SET @TableName = CONCAT('Articulo',@dateFormat)
@@ -31,6 +32,11 @@ BEGIN
 		DECLARE @folderName as VARCHAR(100) = CONCAT('/chess/parquet_files/articulo/Ver=',@Version,'/',@dateFormat,'/')
 
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM bronze.EArticulo T1
+			LEFT JOIN gold.Articulo T2 ON T2.IdArticulo = T1.IdArticulo
+			WHERE T2.IdArticulo IS NULL
+
 			SET @SQL = 
 				'CREATE EXTERNAL TABLE '+ @TableName +   
 				' WITH (
@@ -47,7 +53,7 @@ BEGIN
 				'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName;
-			SET @ResultMessage = 'Ok'
+			SET @ResultMessage = CONCAT('Ok (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT(

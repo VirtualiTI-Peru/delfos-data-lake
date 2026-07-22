@@ -5,6 +5,7 @@ BEGIN
 	DECLARE @StartDateProc DateTime = GETDATE()
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @Version INT = 1
+	DECLARE @RowsAffected INT = 0
 	DECLARE @dateFormat VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
 	DECLARE @TableName VARCHAR(100) = CONCAT('SubCanalesMkt', @dateFormat)
 
@@ -14,12 +15,17 @@ BEGIN
 			BULK 'chess/parquet_files/subcanalesmkt/Ver=*/*/*.parquet', DATA_SOURCE = 'eds_delfos', FORMAT = 'PARQUET') AS result), 0) + 1
 		DECLARE @folderName VARCHAR(100) = CONCAT('/chess/parquet_files/subcanalesmkt/Ver=', @Version, '/', @dateFormat, '/')
 		BEGIN TRY
+			SELECT @RowsAffected = COUNT(*)
+			FROM bronze.SubCanalesMkt T1
+			LEFT JOIN gold.SubCanalesMkt T2 ON T2.idSubcanalMkt = T1.idSubcanalMkt
+			WHERE T2.idSubcanalMkt IS NULL
+
 			SET @SQL = 'CREATE EXTERNAL TABLE ' + @TableName + ' WITH (LOCATION = ''' + @folderName + ''', DATA_SOURCE = eds_delfos, FILE_FORMAT = eff_delfos_parquet) AS
 				SELECT T1.*, ' + CAST(@Version AS VARCHAR(10)) + ' AS Ver FROM bronze.SubCanalesMkt T1
 				LEFT JOIN gold.SubCanalesMkt T2 ON T2.idSubcanalMkt = T1.idSubcanalMkt WHERE T2.idSubcanalMkt IS NULL'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName
-			SET @ResultMessage = 'Datos insertados correctamente'
+			SET @ResultMessage = CONCAT('Datos insertados correctamente (', @RowsAffected, ' filas)')
 		END TRY
 		BEGIN CATCH
 			SET @ResultMessage = CONCAT('Error No: ', ERROR_NUMBER(), ' Message: ', ERROR_MESSAGE())
