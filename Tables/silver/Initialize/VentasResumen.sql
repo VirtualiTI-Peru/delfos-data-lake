@@ -62,7 +62,7 @@ BEGIN
 	BEGIN
 		CREATE EXTERNAL TABLE silver.VentasResumen (
 			idEmpresa int, dsEmpresa nvarchar(100), idDocumento nvarchar(10), dsDocumento nvarchar(50),
-			letra nvarchar(2), serie int, nrodoc int, pickup nvarchar(2), anulado nvarchar(2),
+			letra nvarchar(2), serie int, nrodoc int, pickup bit, anulado bit,
 			idMovComercial int, dsMovComercial nvarchar(100), idRechazo int, dsRechazo nvarchar(100),
 			fechaComprobate datetime, fechaAnulacion date, fechaAlta date, usuarioAlta nvarchar(100),
 			fechaVencimiento date, fechaEntrega date, idSucursal int, dsSucursal nvarchar(100),
@@ -92,9 +92,9 @@ BEGIN
 			tradespendg decimal(14, 4), tradespends decimal(14, 4), tradespendb decimal(14, 4),
 			tradespendi decimal(14, 4), tradespendp decimal(14, 4), tradespendt decimal(14, 4),
 			totradspend decimal(14, 4), acciones nvarchar(100), persiibbd nvarchar(100), persiibbr nvarchar(100),
-			numerosserie nvarchar(100), numerosactivo nvarchar(100), cuentayorden nvarchar(100),
+			numerosserie nvarchar(100), numerosactivo nvarchar(100), cuentayorden bit,
 			codprovcyo int, descrip nvarchar(100), nrorendcyo int, idTipoCambio int, dsTipoCambio nvarchar(100),
-			cfdiEmitido nvarchar(100), regimenFiscal nvarchar(100), informado nvarchar(100),
+			cfdiEmitido nvarchar(100), regimenFiscal nvarchar(100), informado bit,
 			firmadigital nvarchar(100), proveedor nvarchar(100), fvigpcompra nvarchar(100),
 			preciocomprabr decimal(14, 4), preciocomprant decimal(14, 4), lineaCredito nvarchar(100),
 			tipocambio nvarchar(100), motivocambio int, descmotcambio nvarchar(100),

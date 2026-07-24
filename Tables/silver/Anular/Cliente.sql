@@ -9,7 +9,7 @@ BEGIN
 	DECLARE @RowsAffected INT = 0
 	DECLARE @TableName AS VARCHAR(100)
 	DECLARE @dateFormat AS VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
-	DECLARE @fechaBaja AS NVARCHAR(100) = CONVERT(VARCHAR(23), GETDATE(), 126)
+	DECLARE @fechaBaja AS DATE = CAST(GETDATE() AS DATE)
 	SET @TableName = CONCAT('clienteAnular', @dateFormat)
 
 	-- Solo anular si bronze tiene datos (evita marcar todo como anulado ante una ingesta vacia/fallida)
@@ -61,7 +61,7 @@ BEGIN
 							,T1.idCliente
 							,T1.fechaAlta
 							,CAST(1 AS bit) AS anulado
-							,CAST(''' + REPLACE(@fechaBaja, '''', '''''') + ''' AS nvarchar(100)) AS fechaBaja
+							,CAST(''' + CONVERT(VARCHAR(10), @fechaBaja, 23) + ''' AS date) AS fechaBaja
 							,T1.idAliasVigente
 							,T1.idFormaPago
 							,T1.desFormaPago

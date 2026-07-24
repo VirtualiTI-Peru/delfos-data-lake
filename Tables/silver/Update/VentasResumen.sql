@@ -50,7 +50,7 @@ BEGIN
 					AND T2.idArticulo = T1.idArticulo
 				WHERE CONVERT(datetime2, T1.fechaComprobate, 103) = @Date
 					AND (
-						ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+						CASE WHEN UPPER(LTRIM(RTRIM(T1.anulado))) = N'SI' THEN 1 ELSE 0 END <> ISNULL(T2.anulado, 0)
 						OR ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), '')
 							<> ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), '')
 					)
@@ -89,7 +89,7 @@ BEGIN
 						AND T2.idArticulo = T1.idArticulo
 					WHERE CONVERT(datetime2, T1.fechaComprobate, 103) = @Date
 						AND (
-							ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+							CASE WHEN UPPER(LTRIM(RTRIM(T1.anulado))) = N'SI' THEN 1 ELSE 0 END <> ISNULL(T2.anulado, 0)
 							OR ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), '')
 								<> ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), '')
 						)
@@ -121,7 +121,7 @@ BEGIN
 							AND T2.idArticulo = T1.idArticulo
 						WHERE CONVERT(datetime2, T1.fechaComprobate, 103) = CONVERT(datetime2, ''' + CAST(@Date AS VARCHAR(10)) + ''')
 							AND (
-								ISNULL(T1.anulado, 0) <> ISNULL(T2.anulado, 0)
+								CASE WHEN UPPER(LTRIM(RTRIM(T1.anulado))) = N''SI'' THEN 1 ELSE 0 END <> ISNULL(T2.anulado, 0)
 								OR ISNULL(CONVERT(NVARCHAR(30), T1.fechaComprobate, 126), '''')
 									<> ISNULL(CONVERT(NVARCHAR(30), T2.fechaComprobate, 126), '''')
 							)'

@@ -14,9 +14,9 @@ SET @SQL = '
 				CAST( NULL AS int) AS idSucursal
 				, CAST( NULL AS nvarchar(100)) AS desSucursal
 				, CAST( NULL AS int) AS idCliente
-				, CAST( NULL AS nvarchar(100)) AS fechaAlta
+				, CAST( NULL AS date) AS fechaAlta
 				, CAST( NULL AS bit) AS anulado
-				, CAST( NULL AS nvarchar(100)) AS fechaBaja
+				, CAST( NULL AS date) AS fechaBaja
 				, CAST( NULL AS int) AS idAliasVigente
 				, CAST( NULL AS int) AS idFormaPago
 				, CAST( NULL AS nvarchar(100)) AS desFormaPago
@@ -98,9 +98,9 @@ CREATE EXTERNAL TABLE [silver].[Cliente]
 	[idSucursal] [int],
 	[desSucursal] [nvarchar](100),
 	[idCliente] [int],
-	[fechaAlta] [nvarchar](100),
+	[fechaAlta] [date],
 	[anulado] [bit],
-	[fechaBaja] [nvarchar](100),
+	[fechaBaja] [date],
 	[idAliasVigente] [int],
 	[idFormaPago] [int],
 	[desFormaPago] [nvarchar](100),

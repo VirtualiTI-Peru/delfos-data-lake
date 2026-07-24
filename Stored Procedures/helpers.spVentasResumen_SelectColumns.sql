@@ -5,9 +5,12 @@ CREATE OR ALTER PROCEDURE helpers.spVentasResumen_BronzeSelect
 AS
 BEGIN
     DECLARE @a NVARCHAR(12) = @TableAlias + N'.';
+    -- SI/NO (bronze) → bit; NULL u otro valor → 0
     SET @ColumnSelect =
         CAST(@a + N'idEmpresa,' AS NVARCHAR(MAX)) + @a + N'dsEmpresa,' + @a + N'idDocumento,' + @a + N'dsDocumento,' +
-        @a + N'letra,' + @a + N'serie,' + @a + N'nrodoc,' + @a + N'pickup,' + @a + N'anulado,' +
+        @a + N'letra,' + @a + N'serie,' + @a + N'nrodoc,' +
+        N'CAST(CASE WHEN UPPER(LTRIM(RTRIM(' + @a + N'pickup))) = N''SI'' THEN 1 ELSE 0 END AS bit) AS pickup,' +
+        N'CAST(CASE WHEN UPPER(LTRIM(RTRIM(' + @a + N'anulado))) = N''SI'' THEN 1 ELSE 0 END AS bit) AS anulado,' +
         @a + N'idMovComercial,' + @a + N'dsMovComercial,' + @a + N'idRechazo,' + @a + N'dsRechazo,' +
         @a + N'fechaComprobate,' + @a + N'fechaAnulacion,' + @a + N'fechaAlta,' + @a + N'usuarioAlta,' +
         @a + N'fechaVencimiento,' + @a + N'fechaEntrega,' + @a + N'idSucursal,' + @a + N'dsSucursal,' +
@@ -33,9 +36,11 @@ BEGIN
         @a + N'internos,' + @a + N'subtotalFinal,' + @a + N'tradespendg,' + @a + N'tradespends,' + @a + N'tradespendb,' +
         @a + N'tradespendi,' + @a + N'tradespendp,' + @a + N'tradespendt,' + @a + N'totradspend,' +
         @a + N'acciones,' + @a + N'persiibbd,' + @a + N'persiibbr,' + @a + N'numerosserie,' + @a + N'numerosactivo,' +
-        @a + N'cuentayorden,' + @a + N'codprovcyo,' + @a + N'descrip,' + @a + N'nrorendcyo,' +
+        N'CAST(CASE WHEN UPPER(LTRIM(RTRIM(' + @a + N'cuentayorden))) = N''SI'' THEN 1 ELSE 0 END AS bit) AS cuentayorden,' +
+        @a + N'codprovcyo,' + @a + N'descrip,' + @a + N'nrorendcyo,' +
         @a + N'idTipoCambio,' + @a + N'dsTipoCambio,' + @a + N'cfdiEmitido,' + @a + N'regimenFiscal,' +
-        @a + N'informado,' + @a + N'firmadigital,' + @a + N'proveedor,' + @a + N'fvigpcompra,' +
+        N'CAST(CASE WHEN UPPER(LTRIM(RTRIM(' + @a + N'informado))) = N''SI'' THEN 1 ELSE 0 END AS bit) AS informado,' +
+        @a + N'firmadigital,' + @a + N'proveedor,' + @a + N'fvigpcompra,' +
         @a + N'preciocomprabr,' + @a + N'preciocomprant,' + @a + N'lineaCredito,' + @a + N'tipocambio,' +
         @a + N'motivocambio,' + @a + N'descmotcambio,' + @a + N'numeracionFiscal,' + @a + N'codproviibb,' +
         @a + N'TipoId,' + @a + N'DescripcionId,' + @a + N'Identificador,' + @VerExpression + N' AS Ver';
@@ -56,8 +61,8 @@ BEGIN
         N'CAST(NULL AS nvarchar(2)) AS letra,' +
         N'CAST(NULL AS int) AS serie,' +
         N'CAST(NULL AS int) AS nrodoc,' +
-        N'CAST(NULL AS nvarchar(2)) AS pickup,' +
-        N'CAST(NULL AS nvarchar(2)) AS anulado,' +
+        N'CAST(0 AS bit) AS pickup,' +
+        N'CAST(0 AS bit) AS anulado,' +
         N'CAST(NULL AS int) AS idMovComercial,' +
         N'CAST(NULL AS nvarchar(100)) AS dsMovComercial,' +
         N'CAST(NULL AS int) AS idRechazo,' +
@@ -170,7 +175,7 @@ BEGIN
         N'CAST(NULL AS nvarchar(100)) AS persiibbr,' +
         N'CAST(NULL AS nvarchar(100)) AS numerosserie,' +
         N'CAST(NULL AS nvarchar(100)) AS numerosactivo,' +
-        N'CAST(NULL AS nvarchar(100)) AS cuentayorden,' +
+        N'CAST(0 AS bit) AS cuentayorden,' +
         N'CAST(NULL AS int) AS codprovcyo,' +
         N'CAST(NULL AS nvarchar(100)) AS descrip,' +
         N'CAST(NULL AS int) AS nrorendcyo,' +
@@ -178,7 +183,7 @@ BEGIN
         N'CAST(NULL AS nvarchar(100)) AS dsTipoCambio,' +
         N'CAST(NULL AS nvarchar(100)) AS cfdiEmitido,' +
         N'CAST(NULL AS nvarchar(100)) AS regimenFiscal,' +
-        N'CAST(NULL AS nvarchar(100)) AS informado,' +
+        N'CAST(0 AS bit) AS informado,' +
         N'CAST(NULL AS nvarchar(100)) AS firmadigital,' +
         N'CAST(NULL AS nvarchar(100)) AS proveedor,' +
         N'CAST(NULL AS nvarchar(100)) AS fvigpcompra,' +
