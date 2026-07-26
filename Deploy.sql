@@ -49,8 +49,12 @@ GO
 --:r $(SqlRoot)/Stored Procedures/job.SyncData.sql
 --GO
 
---PRINT '=== 7/7 Frontend views ==='
+--PRINT '=== 7/8 Frontend views ==='
 --:r $(SqlRoot)/Misc/CreateFrontendViews.sql
+--GO
+
+--PRINT '=== 8/8 Frontend dashboard SPs ==='
+--:r $(SqlRoot)/Misc/CreateFrontendDashboardProcs.sql
 --GO
 
 --PRINT '=== Despliegue completado. Ejecutar Misc\ValidateDeployment.sql para validar. ==='
