@@ -21,34 +21,34 @@ DECLARE @BronzeCount INT = (
 );
 INSERT INTO @Errors VALUES ('Bronze external tables', CASE WHEN @BronzeCount = 15 THEN 'OK' ELSE 'FAIL' END, CAST(@BronzeCount AS VARCHAR(10)) + ' de 15');
 
--- Silver external tables (8 activas)
+-- Silver external tables (9 activas)
 DECLARE @SilverCount INT = (
 	SELECT COUNT(*) FROM sys.external_tables et
 	INNER JOIN sys.schemas sch ON et.schema_id = sch.schema_id
 	WHERE sch.name = 'silver'
 );
-INSERT INTO @Errors VALUES ('Silver external tables', CASE WHEN @SilverCount >= 8 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverCount AS VARCHAR(10)) + ' (mínimo 8)');
+INSERT INTO @Errors VALUES ('Silver external tables', CASE WHEN @SilverCount >= 9 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverCount AS VARCHAR(10)) + ' (mínimo 9)');
 
--- Silver Insert/Update procedures (16)
+-- Silver Insert/Update/Anular procedures (20)
 DECLARE @SilverProcCount INT = (
 	SELECT COUNT(*) FROM sys.procedures p
 	INNER JOIN sys.schemas sch ON p.schema_id = sch.schema_id
 	WHERE sch.name = 'silver'
 );
-INSERT INTO @Errors VALUES ('Silver procedures', CASE WHEN @SilverProcCount >= 16 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverProcCount AS VARCHAR(10)) + ' (mínimo 16)');
+INSERT INTO @Errors VALUES ('Silver procedures', CASE WHEN @SilverProcCount >= 20 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverProcCount AS VARCHAR(10)) + ' (mínimo 20)');
 
 -- Job orchestrator
 INSERT INTO @Errors
 SELECT 'job.spSyncData',
 	CASE WHEN OBJECT_ID('job.spSyncData', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
--- Gold views (9)
+-- Gold views (10)
 DECLARE @GoldViewCount INT = (
 	SELECT COUNT(*) FROM sys.views v
 	INNER JOIN sys.schemas sch ON v.schema_id = sch.schema_id
 	WHERE sch.name = 'gold'
 );
-INSERT INTO @Errors VALUES ('Gold views', CASE WHEN @GoldViewCount >= 9 THEN 'OK' ELSE 'FAIL' END, CAST(@GoldViewCount AS VARCHAR(10)) + ' (mínimo 9)');
+INSERT INTO @Errors VALUES ('Gold views', CASE WHEN @GoldViewCount >= 10 THEN 'OK' ELSE 'FAIL' END, CAST(@GoldViewCount AS VARCHAR(10)) + ' (mínimo 10)');
 
 -- Helper objects
 INSERT INTO @Errors SELECT 'helpers.spVentasResumen_BronzeSelect', CASE WHEN OBJECT_ID('helpers.spVentasResumen_BronzeSelect', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';

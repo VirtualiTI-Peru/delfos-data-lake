@@ -31,6 +31,8 @@ BEGIN
 	INSERT INTO #TempTable EXEC silver.spSegmentosMkt_Update
 	INSERT INTO #TempTable EXEC silver.spSubCanalesMkt_Insert
 	INSERT INTO #TempTable EXEC silver.spSubCanalesMkt_Update
+	INSERT INTO #TempTable EXEC silver.spPersCom_Insert
+	INSERT INTO #TempTable EXEC silver.spPersCom_Update
 
 	DECLARE @LogStartDate DATETIME
 	DECLARE @LogProcedureName VARCHAR(128)

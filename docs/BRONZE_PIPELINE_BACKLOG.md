@@ -12,6 +12,7 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | CanalesMkt | Implementado |
 | SegmentosMkt | Implementado |
 | SubCanalesMkt | Implementado |
+| PersCom (EPersCom) | Implementado |
 
 ## Pendientes (prioridad sugerida)
 
@@ -29,14 +30,13 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | ERutasVenta | idRuta |
 | EClifuerza | idFuerza |
 | EClientesRuta | idCliente + idRuta |
-| EPersCom | idPersona |
 | EClialias | idAlias |
 
 ## Plantilla para nueva entidad
 
 1. Crear `Tables/silver/Initialize/<Entidad>.sql` — CTAS vacío + external table silver
 2. Crear `Tables/silver/Insert/<Entidad>.sql` — `silver.sp<Entidad>_Insert`
-3. Crear `Tables/silver/Update/<Entidad>.sql` — `silver.sp<Entidad>_Update` con `HASHBYTES` inline (Synapse Dedicated no soporta UDFs)
+3. Crear `Tables/silver/Update/<Entidad>.sql` — `silver.sp<Entidad>_Update` comparando atributos con `ISNULL` (sin `HASHBYTES`: un `CHAR(0)` trunca el hash y no detecta cambios)
 4. Crear `Tables/gold/<Entidad>.sql` — view con `MAX(Ver)` por clave
 5. Registrar en `Misc/CreateExternalSilverTables.sql`, `Misc/InsertAndUpdates.sql`
 6. Agregar llamadas en `Stored Procedures/job.SyncData.sql`

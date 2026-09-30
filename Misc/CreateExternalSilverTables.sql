@@ -18,6 +18,8 @@ go
 go
 :r $(SqlRoot)\Tables\silver\Initialize\SubCanalesMkt.sql
 go
+:r $(SqlRoot)\Tables\silver\Initialize\PersCom.sql
+go
 
 :r $(SqlRoot)\Tables\gold\Agrupaciones.sql
 go
@@ -34,4 +36,6 @@ go
 :r $(SqlRoot)\Tables\gold\SegmentosMkt.sql
 go
 :r $(SqlRoot)\Tables\gold\SubCanalesMkt.sql
+go
+:r $(SqlRoot)\Tables\gold\PersCom.sql
 go
