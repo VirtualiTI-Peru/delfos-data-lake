@@ -20,6 +20,8 @@ go
 go
 :r $(SqlRoot)\Tables\silver\Initialize\PersCom.sql
 go
+:r $(SqlRoot)\Tables\silver\Initialize\CuotaVentas.sql
+go
 
 :r $(SqlRoot)\Tables\gold\Agrupaciones.sql
 go
@@ -38,4 +40,6 @@ go
 :r $(SqlRoot)\Tables\gold\SubCanalesMkt.sql
 go
 :r $(SqlRoot)\Tables\gold\PersCom.sql
+go
+:r $(SqlRoot)\Tables\gold\CuotaVentas.sql
 go

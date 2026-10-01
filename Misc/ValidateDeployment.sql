@@ -41,6 +41,9 @@ INSERT INTO @Errors VALUES ('Silver procedures', CASE WHEN @SilverProcCount >= 2
 INSERT INTO @Errors
 SELECT 'job.spSyncData',
 	CASE WHEN OBJECT_ID('job.spSyncData', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors
+SELECT 'job.spSyncCuotaVentas',
+	CASE WHEN OBJECT_ID('job.spSyncCuotaVentas', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
 -- Gold views (10)
 DECLARE @GoldViewCount INT = (

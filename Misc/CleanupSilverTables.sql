@@ -9,6 +9,7 @@ DROP VIEW IF EXISTS [gold].[CanalesMkt];
 DROP VIEW IF EXISTS [gold].[SegmentosMkt];
 DROP VIEW IF EXISTS [gold].[SubCanalesMkt];
 DROP VIEW IF EXISTS [gold].[PersCom];
+DROP VIEW IF EXISTS [gold].[CuotaVentas];
 
 DROP EXTERNAL TABLE [logs].[Log];
 DROP EXTERNAL TABLE [silver].[EAgrupacione];
@@ -20,3 +21,4 @@ DROP EXTERNAL TABLE [silver].[CanalesMkt];
 DROP EXTERNAL TABLE [silver].[SegmentosMkt];
 DROP EXTERNAL TABLE [silver].[SubCanalesMkt];
 DROP EXTERNAL TABLE [silver].[PersCom];
+DROP EXTERNAL TABLE [silver].[CuotaVentas];

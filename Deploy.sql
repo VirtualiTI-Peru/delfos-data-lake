@@ -48,6 +48,8 @@ GO
 --PRINT '=== 6/7 Job orchestrator ==='
 --:r $(SqlRoot)/Stored Procedures/job.SyncData.sql
 --GO
+--:r $(SqlRoot)/Stored Procedures/job.SyncCuotaVentas.sql
+--GO
 
 --PRINT '=== 7/8 Frontend views ==='
 --:r $(SqlRoot)/Misc/CreateFrontendViews.sql

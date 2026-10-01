@@ -20,6 +20,8 @@ go
 go
 :r $(pathInsert)\PersCom.sql
 go
+:r $(pathInsert)\CuotaVentas.sql
+go
 
 :r $(pathUpdate)\Agrupaciones.sql
 go
@@ -38,6 +40,8 @@ go
 :r $(pathUpdate)\SubCanalesMkt.sql
 go
 :r $(pathUpdate)\PersCom.sql
+go
+:r $(pathUpdate)\CuotaVentas.sql
 go
 
 :r $(pathAnular)\Articulo.sql
