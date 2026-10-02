@@ -80,7 +80,7 @@ Verificar en Synapse Studio:
 - **Monitor → Trigger runs**: aparece `trg-factoria-zip`
 - **Monitor → Pipeline runs**: corrida automática del pipeline
 
-Verificar el lakehouse (`ldh_factoria`, Dedicated pool):
+Verificar el lakehouse (`ldh_factoria`, Serverless pool):
 
 ```sql
 SELECT TOP 15 LogDate, ProcedureName, LEFT(LogMessage, 100) AS LogMessage, LogType

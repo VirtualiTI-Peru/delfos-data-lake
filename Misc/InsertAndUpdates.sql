@@ -22,6 +22,8 @@ go
 go
 :r $(pathInsert)\CuotaVentas.sql
 go
+:r $(pathInsert)\CuotaCobertura.sql
+go
 
 :r $(pathUpdate)\Agrupaciones.sql
 go
@@ -42,6 +44,8 @@ go
 :r $(pathUpdate)\PersCom.sql
 go
 :r $(pathUpdate)\CuotaVentas.sql
+go
+:r $(pathUpdate)\CuotaCobertura.sql
 go
 
 :r $(pathAnular)\Articulo.sql

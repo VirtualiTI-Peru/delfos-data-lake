@@ -13,6 +13,8 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | SegmentosMkt | Implementado |
 | SubCanalesMkt | Implementado |
 | PersCom (EPersCom) | Implementado |
+| CuotaVentas | Implementado (job.spSyncCuotaVentas, origen delfos-api) |
+| CuotaCobertura | Implementado (job.spSyncCuotaCobertura, origen delfos-api) |
 
 ## Pendientes (prioridad sugerida)
 

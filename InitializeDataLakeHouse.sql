@@ -10,9 +10,10 @@
 */
 
 --CREATE DATABASE $(DatabaseName) COLLATE Latin1_General_100_BIN2_UTF8
-IF NOT EXISTS (SELECT 1 FROM sys.symmetric_keys WHERE name = 'CP3H7nuep7AdqCqgmdPGwXdwGAYA8ZMF')
+-- $(MasterKeyPassword) lo sustituye el CLI (delfos lakehouse onboard). No commitear el valor.
+IF NOT EXISTS (SELECT 1 FROM sys.symmetric_keys WHERE name = '##MS_DatabaseMasterKey##')
 BEGIN
-    DECLARE @mkSql NVARCHAR(4000) = N'CREATE MASTER KEY ENCRYPTION BY PASSWORD = ''' + REPLACE('CP3H7nuep7AdqCqgmdPGwXdwGAYA8ZMF', '''', '''''') + '''';
+    DECLARE @mkSql NVARCHAR(4000) = N'CREATE MASTER KEY ENCRYPTION BY PASSWORD = ''' + REPLACE(N'$(MasterKeyPassword)', '''', '''''') + '''';
     EXEC (@mkSql);
 END
 
@@ -36,12 +37,14 @@ IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'logs')
     EXEC('CREATE SCHEMA logs AUTHORIZATION dbo');
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'job')
     EXEC('CREATE SCHEMA job AUTHORIZATION dbo');
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'agg')
+    EXEC('CREATE SCHEMA agg AUTHORIZATION dbo');
 
 IF NOT EXISTS (SELECT 1 FROM sys.external_data_sources WHERE name = 'eds_delfos')
 BEGIN
     CREATE EXTERNAL DATA SOURCE eds_delfos
         WITH (
-            LOCATION   = 'https://delfosdatalakeaccount.blob.core.windows.net/factoria',
+            LOCATION   = '$(AdlsContainerPath)',
             CREDENTIAL = WorkspaceIdentity
         );
 END

@@ -15,3 +15,4 @@
 :r $(SqlRoot)\Tables\bronze\SubCanalesMkt.sql
 :r $(SqlRoot)\Tables\bronze\VentasResumen.sql
 :r $(SqlRoot)\Tables\bronze\CuotaVentas.sql
+:r $(SqlRoot)\Tables\bronze\CuotaCobertura.sql

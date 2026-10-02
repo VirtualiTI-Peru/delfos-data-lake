@@ -1,10 +1,10 @@
-CREATE OR ALTER PROCEDURE job.spSyncData
+CREATE OR ALTER PROCEDURE job.spSyncCuotaCobertura
 AS
 BEGIN
 	DECLARE @JobId AS uniqueidentifier = NEWID()
 	DECLARE @Sql VARCHAR(MAX)
 	DECLARE @dateFormat VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
-	DECLARE @folderName VARCHAR(100) = CONCAT('/chess/parquet_files/log/', @dateFormat, '/')
+	DECLARE @folderName VARCHAR(100)
 
 	CREATE TABLE #TempTable (
 		StartDate DateTime,
@@ -13,27 +13,8 @@ BEGIN
 		LogMessage VARCHAR(MAX)
 	)
 
-	INSERT INTO #TempTable EXEC silver.spAgrupacion_Insert
-	INSERT INTO #TempTable EXEC silver.spAgrupacion_Update
-	INSERT INTO #TempTable EXEC silver.spArticulo_Insert
-	INSERT INTO #TempTable EXEC silver.spArticulo_Update
-	INSERT INTO #TempTable EXEC silver.spArticulo_Anular
-	INSERT INTO #TempTable EXEC silver.spCliente_Insert
-	INSERT INTO #TempTable EXEC silver.spCliente_Update
-	INSERT INTO #TempTable EXEC silver.spCliente_Anular
-	INSERT INTO #TempTable EXEC silver.spVentasResumen_Insert
-	INSERT INTO #TempTable EXEC silver.spVentasResumen_Update
-	INSERT INTO #TempTable EXEC silver.spDsStock_Insert
-	INSERT INTO #TempTable EXEC silver.spDsStock_Update
-	INSERT INTO #TempTable EXEC silver.spCanalesMkt_Insert
-	INSERT INTO #TempTable EXEC silver.spCanalesMkt_Update
-	INSERT INTO #TempTable EXEC silver.spSegmentosMkt_Insert
-	INSERT INTO #TempTable EXEC silver.spSegmentosMkt_Update
-	INSERT INTO #TempTable EXEC silver.spSubCanalesMkt_Insert
-	INSERT INTO #TempTable EXEC silver.spSubCanalesMkt_Update
-	INSERT INTO #TempTable EXEC silver.spPersCom_Insert
-	INSERT INTO #TempTable EXEC silver.spPersCom_Update
-	INSERT INTO #TempTable EXEC agg.spVentasVendedorDiario_Refresh
+	INSERT INTO #TempTable EXEC silver.spCuotaCobertura_Insert
+	INSERT INTO #TempTable EXEC silver.spCuotaCobertura_Update
 
 	DECLARE @LogStartDate DATETIME
 	DECLARE @LogProcedureName VARCHAR(128)
@@ -43,7 +24,6 @@ BEGIN
 	DECLARE @LogMaxRowNum INT
 	DECLARE @LogPersistFailed BIT = 0
 
-	-- Synapse serverless pool does not support @@FETCH_STATUS / cursors; use row-number iteration.
 	SELECT
 		ROW_NUMBER() OVER (ORDER BY StartDate, ProcedureName) AS RowNum,
 		StartDate,
@@ -65,7 +45,8 @@ BEGIN
 		FROM #LogRows
 		WHERE RowNum = @LogRowNum
 
-		SET @LogTableName = CONCAT('Log', @dateFormat, '_', @LogRowNum)
+		SET @folderName = CONCAT('/chess/parquet_files/log/cobertura_', @dateFormat, '_', @LogRowNum, '/')
+		SET @LogTableName = CONCAT('LogCobertura', @dateFormat, '_', @LogRowNum)
 		SET @LogMessageText = LEFT(REPLACE(REPLACE(REPLACE(@LogMessageText, '''', ''''''), CHAR(13), ''), CHAR(10), ''), 1024)
 
 		SET @SQL =
@@ -97,7 +78,7 @@ BEGIN
 	IF @LogPersistFailed = 1
 	BEGIN
 		INSERT INTO #TempTable (StartDate, EndDate, ProcedureName, LogMessage)
-		VALUES (GETDATE(), GETDATE(), 'job.spSyncData', 'Advertencia: no se pudo persistir parte del log en ADLS (el job ETL finalizo correctamente).')
+		VALUES (GETDATE(), GETDATE(), 'job.spSyncCuotaCobertura', 'Advertencia: no se pudo persistir parte del log en ADLS (el job ETL finalizo correctamente).')
 	END
 
 	SELECT

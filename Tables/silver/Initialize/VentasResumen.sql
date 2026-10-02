@@ -15,10 +15,24 @@ DECLARE @FechaStr VARCHAR(10)
 
 DROP TABLE IF EXISTS #Dates
 CREATE TABLE #Dates (FechaFac DATE)
-INSERT INTO #Dates EXEC helpers.spGetDatesToUpdate 'VentasResumen'
+BEGIN TRY
+	INSERT INTO #Dates EXEC helpers.spGetDatesToUpdate 'VentasResumen'
+END TRY
+BEGIN CATCH
+	-- 13807: the bronze CSV is not in ADLS yet (new client, before the first ingestion).
+	IF ERROR_NUMBER() <> 13807 THROW
+END CATCH
 
 SET @StartDate = (SELECT MIN(FechaFac) FROM #Dates)
 SET @EndDate = (SELECT MAX(FechaFac) FROM #Dates)
+-- Seed one empty partition so silver.VentasResumen exists before the first ingestion.
+-- Ver=0 is excluded by agg.spVentasVendedorDiario_Refresh.
+IF @StartDate IS NULL
+	AND NOT EXISTS (SELECT 1 FROM sys.external_tables WHERE object_id = OBJECT_ID('silver.VentasResumen'))
+BEGIN
+	SET @StartDate = '1900-01-01'
+	SET @EndDate = @StartDate
+END
 SET @Date = @StartDate
 
 WHILE @Date IS NOT NULL AND @Date <= @EndDate

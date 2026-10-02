@@ -1,4 +1,4 @@
-CREATE OR ALTER VIEW gold.Vendedor
+CREATE OR ALTER VIEW gold.Gerente
 AS
 SELECT [idSucursal]
       ,[idPersonal]
@@ -6,4 +6,3 @@ SELECT [idSucursal]
   FROM [gold].[PersCom]
   WHERE 
     cargo = 'GERENTE'
-  ORDER BY desPersonal

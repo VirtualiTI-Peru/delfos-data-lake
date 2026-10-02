@@ -10,6 +10,24 @@ DROP VIEW IF EXISTS [gold].[SegmentosMkt];
 DROP VIEW IF EXISTS [gold].[SubCanalesMkt];
 DROP VIEW IF EXISTS [gold].[PersCom];
 DROP VIEW IF EXISTS [gold].[CuotaVentas];
+DROP VIEW IF EXISTS [gold].[CuotaCobertura];
+
+DROP VIEW IF EXISTS [agg].[VentasVendedorDiario];
+
+DECLARE @MartTable VARCHAR(100) = (
+	SELECT TOP 1 CONCAT('agg.', et.name)
+	FROM sys.external_tables et
+	INNER JOIN sys.schemas s ON s.schema_id = et.schema_id
+	WHERE s.name = 'agg' AND et.name LIKE 'VentasVendedorDiario[_]%');
+WHILE @MartTable IS NOT NULL
+BEGIN
+	EXEC helpers.DropExternalTable @MartTable;
+	SET @MartTable = (
+		SELECT TOP 1 CONCAT('agg.', et.name)
+		FROM sys.external_tables et
+		INNER JOIN sys.schemas s ON s.schema_id = et.schema_id
+		WHERE s.name = 'agg' AND et.name LIKE 'VentasVendedorDiario[_]%');
+END
 
 DROP EXTERNAL TABLE [logs].[Log];
 DROP EXTERNAL TABLE [silver].[EAgrupacione];
@@ -22,3 +40,4 @@ DROP EXTERNAL TABLE [silver].[SegmentosMkt];
 DROP EXTERNAL TABLE [silver].[SubCanalesMkt];
 DROP EXTERNAL TABLE [silver].[PersCom];
 DROP EXTERNAL TABLE [silver].[CuotaVentas];
+DROP EXTERNAL TABLE [silver].[CuotaCobertura];

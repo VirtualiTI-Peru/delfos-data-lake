@@ -11,7 +11,7 @@ INSERT INTO @Errors
 SELECT 'Schema: ' + s.name,
 	CASE WHEN EXISTS (SELECT 1 FROM sys.schemas WHERE name = s.name) THEN 'OK' ELSE 'FAIL' END,
 	''
-FROM (VALUES ('bronze'), ('silver'), ('gold'), ('helpers'), ('job'), ('logs'), ('frontend')) AS s(name);
+FROM (VALUES ('bronze'), ('silver'), ('gold'), ('helpers'), ('job'), ('logs'), ('frontend'), ('agg')) AS s(name);
 
 -- Bronze external tables (15)
 DECLARE @BronzeCount INT = (
@@ -44,6 +44,9 @@ SELECT 'job.spSyncData',
 INSERT INTO @Errors
 SELECT 'job.spSyncCuotaVentas',
 	CASE WHEN OBJECT_ID('job.spSyncCuotaVentas', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors
+SELECT 'job.spSyncCuotaCobertura',
+	CASE WHEN OBJECT_ID('job.spSyncCuotaCobertura', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
 -- Gold views (10)
 DECLARE @GoldViewCount INT = (
@@ -57,6 +60,10 @@ INSERT INTO @Errors VALUES ('Gold views', CASE WHEN @GoldViewCount >= 10 THEN 'O
 INSERT INTO @Errors SELECT 'helpers.spVentasResumen_BronzeSelect', CASE WHEN OBJECT_ID('helpers.spVentasResumen_BronzeSelect', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 INSERT INTO @Errors SELECT 'helpers.spVentasResumen_NullSelect', CASE WHEN OBJECT_ID('helpers.spVentasResumen_NullSelect', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 INSERT INTO @Errors SELECT 'logs.Log table', CASE WHEN OBJECT_ID('logs.Log', 'ET') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+
+-- Agg
+INSERT INTO @Errors SELECT 'agg.VentasVendedorDiario', CASE WHEN OBJECT_ID('agg.VentasVendedorDiario', 'V') IS NOT NULL THEN 'OK' ELSE 'WARN' END, 'Se crea en la primera ejecución de agg.spVentasVendedorDiario_Refresh';
+INSERT INTO @Errors SELECT 'agg.spVentasVendedorDiario_Refresh', CASE WHEN OBJECT_ID('agg.spVentasVendedorDiario_Refresh', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
 -- Conectividad ADLS (opcional, puede fallar si no hay datos)
 BEGIN TRY

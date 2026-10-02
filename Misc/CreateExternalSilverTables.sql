@@ -22,6 +22,8 @@ go
 go
 :r $(SqlRoot)\Tables\silver\Initialize\CuotaVentas.sql
 go
+:r $(SqlRoot)\Tables\silver\Initialize\CuotaCobertura.sql
+go
 
 :r $(SqlRoot)\Tables\gold\Agrupaciones.sql
 go
@@ -42,4 +44,6 @@ go
 :r $(SqlRoot)\Tables\gold\PersCom.sql
 go
 :r $(SqlRoot)\Tables\gold\CuotaVentas.sql
+go
+:r $(SqlRoot)\Tables\gold\CuotaCobertura.sql
 go
