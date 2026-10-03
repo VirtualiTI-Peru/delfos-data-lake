@@ -13,6 +13,8 @@ DROP VIEW IF EXISTS [gold].[CuotaVentas];
 DROP VIEW IF EXISTS [gold].[CuotaCobertura];
 
 DROP VIEW IF EXISTS [agg].[VentasVendedorDiario];
+IF EXISTS (SELECT 1 FROM sys.external_tables WHERE object_id = OBJECT_ID('agg.VentasVendedorDiario'))
+	DROP EXTERNAL TABLE [agg].[VentasVendedorDiario];
 
 DECLARE @MartTable VARCHAR(100) = (
 	SELECT TOP 1 CONCAT('agg.', et.name)
