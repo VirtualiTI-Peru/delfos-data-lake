@@ -4,7 +4,7 @@ CREATE EXTERNAL TABLE bronze.DiasNoLaborables(
 	descripcion nvarchar(200)
 )
 WITH (
-    LOCATION = 'chess/objetivos_files/calendario/',
+    LOCATION = 'chess/others_files/calendario/',
     DATA_SOURCE = eds_delfos,
     FILE_FORMAT = eff_delfos_csv
 )
