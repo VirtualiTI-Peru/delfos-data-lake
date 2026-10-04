@@ -13,6 +13,8 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | SegmentosMkt | Implementado |
 | SubCanalesMkt | Implementado |
 | PersCom (EPersCom) | Implementado |
+| RutasVenta (ERutasVenta) | Implementado. Clave `idRuta`. `IdRutaAuto` se regenera en cada extracción y el Update no lo compara |
+| ClientesRuta (EClientesRuta) | Implementado. Clave `idCliente` + `idRuta`. `idRuta` se resuelve con `bronze.ERutasVenta` por `IdRutaAuto` de la misma extracción. `anulado` solo existe en silver/gold |
 | CuotaVentas | Implementado (job.spSyncCuotaVentas, origen delfos-api) |
 | CuotaCobertura | Implementado (job.spSyncCuotaCobertura, origen delfos-api) |
 
@@ -29,9 +31,7 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 
 | Bronze | Clave de negocio sugerida |
 |--------|---------------------------|
-| ERutasVenta | idRuta |
 | EClifuerza | idFuerza |
-| EClientesRuta | idCliente + idRuta |
 | EClialias | idAlias |
 
 ## Plantilla para nueva entidad

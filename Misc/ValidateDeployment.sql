@@ -21,21 +21,21 @@ DECLARE @BronzeCount INT = (
 );
 INSERT INTO @Errors VALUES ('Bronze external tables', CASE WHEN @BronzeCount = 15 THEN 'OK' ELSE 'FAIL' END, CAST(@BronzeCount AS VARCHAR(10)) + ' de 15');
 
--- Silver external tables (9 activas)
+-- Silver external tables (13)
 DECLARE @SilverCount INT = (
 	SELECT COUNT(*) FROM sys.external_tables et
 	INNER JOIN sys.schemas sch ON et.schema_id = sch.schema_id
 	WHERE sch.name = 'silver'
 );
-INSERT INTO @Errors VALUES ('Silver external tables', CASE WHEN @SilverCount >= 9 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverCount AS VARCHAR(10)) + ' (mínimo 9)');
+INSERT INTO @Errors VALUES ('Silver external tables', CASE WHEN @SilverCount >= 13 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverCount AS VARCHAR(10)) + ' (mínimo 13)');
 
--- Silver Insert/Update/Anular procedures (20)
+-- Silver Insert/Update/Anular procedures (30)
 DECLARE @SilverProcCount INT = (
 	SELECT COUNT(*) FROM sys.procedures p
 	INNER JOIN sys.schemas sch ON p.schema_id = sch.schema_id
 	WHERE sch.name = 'silver'
 );
-INSERT INTO @Errors VALUES ('Silver procedures', CASE WHEN @SilverProcCount >= 20 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverProcCount AS VARCHAR(10)) + ' (mínimo 20)');
+INSERT INTO @Errors VALUES ('Silver procedures', CASE WHEN @SilverProcCount >= 30 THEN 'OK' ELSE 'FAIL' END, CAST(@SilverProcCount AS VARCHAR(10)) + ' (mínimo 30)');
 
 -- Job orchestrator
 INSERT INTO @Errors
@@ -48,13 +48,23 @@ INSERT INTO @Errors
 SELECT 'job.spSyncCuotaCobertura',
 	CASE WHEN OBJECT_ID('job.spSyncCuotaCobertura', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
--- Gold views (10)
+-- Gold views (14 del script de despliegue; Vendedor/Supervisor/Gerente/Sucursal suman si ya estan publicadas)
 DECLARE @GoldViewCount INT = (
 	SELECT COUNT(*) FROM sys.views v
 	INNER JOIN sys.schemas sch ON v.schema_id = sch.schema_id
 	WHERE sch.name = 'gold'
 );
-INSERT INTO @Errors VALUES ('Gold views', CASE WHEN @GoldViewCount >= 10 THEN 'OK' ELSE 'FAIL' END, CAST(@GoldViewCount AS VARCHAR(10)) + ' (mínimo 10)');
+INSERT INTO @Errors VALUES ('Gold views', CASE WHEN @GoldViewCount >= 14 THEN 'OK' ELSE 'FAIL' END, CAST(@GoldViewCount AS VARCHAR(10)) + ' (mínimo 14)');
+INSERT INTO @Errors SELECT 'silver.RutasVenta', CASE WHEN OBJECT_ID('silver.RutasVenta', 'ET') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.ClientesRuta', CASE WHEN OBJECT_ID('silver.ClientesRuta', 'ET') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'gold.RutasVenta', CASE WHEN OBJECT_ID('gold.RutasVenta', 'V') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'gold.ClientesRuta', CASE WHEN OBJECT_ID('gold.ClientesRuta', 'V') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spRutasVenta_Insert', CASE WHEN OBJECT_ID('silver.spRutasVenta_Insert', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spRutasVenta_Update', CASE WHEN OBJECT_ID('silver.spRutasVenta_Update', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spRutasVenta_Anular', CASE WHEN OBJECT_ID('silver.spRutasVenta_Anular', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spClientesRuta_Insert', CASE WHEN OBJECT_ID('silver.spClientesRuta_Insert', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spClientesRuta_Update', CASE WHEN OBJECT_ID('silver.spClientesRuta_Update', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'silver.spClientesRuta_Anular', CASE WHEN OBJECT_ID('silver.spClientesRuta_Anular', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
 -- Helper objects
 INSERT INTO @Errors SELECT 'helpers.spVentasResumen_BronzeSelect', CASE WHEN OBJECT_ID('helpers.spVentasResumen_BronzeSelect', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';

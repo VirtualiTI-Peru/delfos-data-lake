@@ -24,6 +24,10 @@ go
 go
 :r $(SqlRoot)\Tables\silver\Initialize\CuotaCobertura.sql
 go
+:r $(SqlRoot)\Tables\silver\Initialize\RutasVenta.sql
+go
+:r $(SqlRoot)\Tables\silver\Initialize\ClientesRuta.sql
+go
 
 :r $(SqlRoot)\Tables\gold\Agrupaciones.sql
 go
@@ -46,4 +50,8 @@ go
 :r $(SqlRoot)\Tables\gold\CuotaVentas.sql
 go
 :r $(SqlRoot)\Tables\gold\CuotaCobertura.sql
+go
+:r $(SqlRoot)\Tables\gold\RutasVenta.sql
+go
+:r $(SqlRoot)\Tables\gold\ClientesRuta.sql
 go

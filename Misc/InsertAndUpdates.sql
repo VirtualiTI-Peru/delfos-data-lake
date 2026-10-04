@@ -24,6 +24,10 @@ go
 go
 :r $(pathInsert)\CuotaCobertura.sql
 go
+:r $(pathInsert)\RutasVenta.sql
+go
+:r $(pathInsert)\ClientesRuta.sql
+go
 
 :r $(pathUpdate)\Agrupaciones.sql
 go
@@ -47,8 +51,16 @@ go
 go
 :r $(pathUpdate)\CuotaCobertura.sql
 go
+:r $(pathUpdate)\RutasVenta.sql
+go
+:r $(pathUpdate)\ClientesRuta.sql
+go
 
 :r $(pathAnular)\Articulo.sql
 go
 :r $(pathAnular)\Cliente.sql
+go
+:r $(pathAnular)\RutasVenta.sql
+go
+:r $(pathAnular)\ClientesRuta.sql
 go
