@@ -61,6 +61,8 @@ GO
 --GO
 --:r $(SqlRoot)/Stored Procedures/job.SyncCuotaCobertura.sql
 --GO
+--:r $(SqlRoot)/Stored Procedures/job.SyncDiasNoLaborables.sql
+--GO
 
 --PRINT '=== 8/9 Frontend views ==='
 --:r $(SqlRoot)/Misc/CreateFrontendViews.sql

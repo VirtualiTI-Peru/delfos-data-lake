@@ -16,3 +16,4 @@
 :r $(SqlRoot)\Tables\bronze\VentasResumen.sql
 :r $(SqlRoot)\Tables\bronze\CuotaVentas.sql
 :r $(SqlRoot)\Tables\bronze\CuotaCobertura.sql
+:r $(SqlRoot)\Tables\bronze\DiasNoLaborables.sql

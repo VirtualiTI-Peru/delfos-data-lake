@@ -11,6 +11,7 @@ DROP VIEW IF EXISTS [gold].[SubCanalesMkt];
 DROP VIEW IF EXISTS [gold].[PersCom];
 DROP VIEW IF EXISTS [gold].[CuotaVentas];
 DROP VIEW IF EXISTS [gold].[CuotaCobertura];
+DROP VIEW IF EXISTS [gold].[DiasNoLaborables];
 DROP VIEW IF EXISTS [gold].[RutasVenta];
 DROP VIEW IF EXISTS [gold].[ClientesRuta];
 
@@ -45,5 +46,6 @@ DROP EXTERNAL TABLE [silver].[SubCanalesMkt];
 DROP EXTERNAL TABLE [silver].[PersCom];
 DROP EXTERNAL TABLE [silver].[CuotaVentas];
 DROP EXTERNAL TABLE [silver].[CuotaCobertura];
+DROP EXTERNAL TABLE [silver].[DiasNoLaborables];
 DROP EXTERNAL TABLE [silver].[RutasVenta];
 DROP EXTERNAL TABLE [silver].[ClientesRuta];
