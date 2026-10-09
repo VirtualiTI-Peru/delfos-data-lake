@@ -30,6 +30,8 @@ go
 go
 :r $(pathInsert)\ClientesRuta.sql
 go
+:r $(pathInsert)\Clifuerza.sql
+go
 
 :r $(pathUpdate)\Agrupaciones.sql
 go
@@ -59,6 +61,8 @@ go
 go
 :r $(pathUpdate)\ClientesRuta.sql
 go
+:r $(pathUpdate)\Clifuerza.sql
+go
 
 :r $(pathAnular)\Articulo.sql
 go
@@ -67,6 +71,8 @@ go
 :r $(pathAnular)\RutasVenta.sql
 go
 :r $(pathAnular)\ClientesRuta.sql
+go
+:r $(pathAnular)\Clifuerza.sql
 go
 :r $(pathAnular)\DiasNoLaborables.sql
 go

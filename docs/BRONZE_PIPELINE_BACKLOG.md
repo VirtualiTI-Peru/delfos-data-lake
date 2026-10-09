@@ -15,6 +15,7 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | PersCom (EPersCom) | Implementado |
 | RutasVenta (ERutasVenta) | Implementado. Clave `idRuta`. `IdRutaAuto` se regenera en cada extracción y el Update no lo compara |
 | ClientesRuta (EClientesRuta) | Implementado. Clave `idCliente` + `idRuta`. `idRuta` se resuelve con `bronze.ERutasVenta` por `IdRutaAuto` de la misma extracción. `anulado` solo existe en silver/gold |
+| Clifuerza (EClifuerza) | Implementado. Clave `idSucursal` + `idCliente` + `idFuerzaVentas` + `idRuta`. `idFuerzaVentas` no identifica la fila (varios clientes comparten la fuerza). Si bronze repite la clave, queda la de `anulado = 0`. `anulado` viene de Chess; si la asignación desaparece del snapshot, `silver.spClifuerza_Anular` la marca. `perioricidadEntrega` conserva el nombre de Chess |
 | CuotaVentas | Implementado (job.spSyncCuotaVentas, origen delfos-api) |
 | CuotaCobertura | Implementado (job.spSyncCuotaCobertura, origen delfos-api) |
 
@@ -31,7 +32,6 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 
 | Bronze | Clave de negocio sugerida |
 |--------|---------------------------|
-| EClifuerza | idFuerza |
 | EClialias | idAlias |
 
 ## Plantilla para nueva entidad
@@ -40,7 +40,7 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 2. Crear `Tables/silver/Insert/<Entidad>.sql` — `silver.sp<Entidad>_Insert`
 3. Crear `Tables/silver/Update/<Entidad>.sql` — `silver.sp<Entidad>_Update` comparando atributos con `ISNULL` (sin `HASHBYTES`: un `CHAR(0)` trunca el hash y no detecta cambios)
 4. Crear `Tables/gold/<Entidad>.sql` — view con `MAX(Ver)` por clave
-5. Registrar en `Misc/CreateExternalSilverTables.sql`, `Misc/InsertAndUpdates.sql`
+5. Registrar en `Misc/CreateExternalSilverTables.sql`, `Misc/InsertAndUpdates.sql` y en `LakehouseScripts.cs` (bootstrap del Initialize y objetos Insert/Update/Anular/Gold)
 6. Agregar llamadas en `Stored Procedures/job.SyncData.sql`
 7. Actualizar `Misc/CleanupSilverTables.sql` y `Misc/ValidateDeployment.sql`
 

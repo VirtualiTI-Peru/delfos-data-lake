@@ -14,6 +14,7 @@ DROP VIEW IF EXISTS [gold].[CuotaCobertura];
 DROP VIEW IF EXISTS [gold].[DiasNoLaborables];
 DROP VIEW IF EXISTS [gold].[RutasVenta];
 DROP VIEW IF EXISTS [gold].[ClientesRuta];
+DROP VIEW IF EXISTS [gold].[Clifuerza];
 
 DROP VIEW IF EXISTS [agg].[VentasVendedorDiario];
 IF EXISTS (SELECT 1 FROM sys.external_tables WHERE object_id = OBJECT_ID('agg.VentasVendedorDiario'))
@@ -49,3 +50,4 @@ DROP EXTERNAL TABLE [silver].[CuotaCobertura];
 DROP EXTERNAL TABLE [silver].[DiasNoLaborables];
 DROP EXTERNAL TABLE [silver].[RutasVenta];
 DROP EXTERNAL TABLE [silver].[ClientesRuta];
+DROP EXTERNAL TABLE [silver].[Clifuerza];

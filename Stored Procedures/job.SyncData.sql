@@ -39,6 +39,9 @@ BEGIN
 	INSERT INTO #TempTable EXEC silver.spClientesRuta_Insert
 	INSERT INTO #TempTable EXEC silver.spClientesRuta_Update
 	INSERT INTO #TempTable EXEC silver.spClientesRuta_Anular
+	INSERT INTO #TempTable EXEC silver.spClifuerza_Insert
+	INSERT INTO #TempTable EXEC silver.spClifuerza_Update
+	INSERT INTO #TempTable EXEC silver.spClifuerza_Anular
 	INSERT INTO #TempTable EXEC agg.spVentasVendedorDiario_Refresh
 
 	DECLARE @LogStartDate DATETIME

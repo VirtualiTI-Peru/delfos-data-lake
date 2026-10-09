@@ -30,6 +30,8 @@ go
 go
 :r $(SqlRoot)\Tables\silver\Initialize\ClientesRuta.sql
 go
+:r $(SqlRoot)\Tables\silver\Initialize\Clifuerza.sql
+go
 
 :r $(SqlRoot)\Tables\gold\Agrupaciones.sql
 go
@@ -58,4 +60,6 @@ go
 :r $(SqlRoot)\Tables\gold\RutasVenta.sql
 go
 :r $(SqlRoot)\Tables\gold\ClientesRuta.sql
+go
+:r $(SqlRoot)\Tables\gold\Clifuerza.sql
 go
