@@ -26,8 +26,8 @@ FROM (
 	SELECT
 		a.*,
 		ROW_NUMBER() OVER (
-			PARTITION BY a.idRuta
-			ORDER BY a.Ver DESC, ISNULL(a.anulado, 0), a.idSucursal, a.idPersonal
+			PARTITION BY a.idSucursal, a.idFuerzaVentas, a.idRuta, a.idPersonal
+			ORDER BY a.Ver DESC, ISNULL(a.anulado, 0)
 		) AS rn
 	FROM silver.RutasVenta a
 	WHERE a.Ver <> 0

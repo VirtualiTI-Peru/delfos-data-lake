@@ -10,7 +10,8 @@ BEGIN
 	DECLARE @dateFormat VARCHAR(14) = FORMAT(GETDATE(), 'yyyyMMddHHmmss')
 	SET @TableName = CONCAT('rutasventaAnular', @dateFormat)
 
-	-- Solo anular si bronze tiene datos (evita marcar todo como anulado ante una ingesta vacia/fallida)
+	-- Clave idSucursal + idFuerzaVentas + idRuta + idPersonal.
+	-- Solo anular si bronze tiene datos (un CSV vacio anularia todas las rutas).
 	IF EXISTS (SELECT TOP 1 1 FROM bronze.ERutasVenta)
 	AND EXISTS (
 		SELECT TOP 1 1
@@ -19,7 +20,10 @@ BEGIN
 		  AND NOT EXISTS (
 				SELECT 1
 				FROM bronze.ERutasVenta B
-				WHERE B.idRuta = G.idRuta
+				WHERE B.idSucursal = G.idSucursal
+				  AND B.idFuerzaVentas = G.idFuerzaVentas
+				  AND B.idRuta = G.idRuta
+				  AND B.idPersonal = G.idPersonal
 		  )
 	)
 	BEGIN
@@ -33,7 +37,10 @@ BEGIN
 			  AND NOT EXISTS (
 					SELECT 1
 					FROM bronze.ERutasVenta B
-					WHERE B.idRuta = T1.idRuta
+					WHERE B.idSucursal = T1.idSucursal
+					  AND B.idFuerzaVentas = T1.idFuerzaVentas
+					  AND B.idRuta = T1.idRuta
+					  AND B.idPersonal = T1.idPersonal
 			  )
 
 			SET @SQL =
@@ -53,8 +60,8 @@ BEGIN
 							,T1.desModoAtencion
 							,T1.idRuta
 							,T1.desRuta
-							,T1.fechaDesde
-							,T1.fechaHasta
+							,CAST(T1.fechaDesde AS datetime) AS fechaDesde
+							,CAST(T1.fechaHasta AS datetime) AS fechaHasta
 							,CAST(1 AS bit) AS anulado
 							,T1.idPersonal
 							,T1.desPersonal
@@ -71,7 +78,10 @@ BEGIN
 						  AND NOT EXISTS (
 								SELECT 1
 								FROM bronze.ERutasVenta B
-								WHERE B.idRuta = T1.idRuta
+								WHERE B.idSucursal = T1.idSucursal
+								  AND B.idFuerzaVentas = T1.idFuerzaVentas
+								  AND B.idRuta = T1.idRuta
+								  AND B.idPersonal = T1.idPersonal
 						  )'
 			EXEC (@SQL)
 			EXEC helpers.DropExternalTable @TableName

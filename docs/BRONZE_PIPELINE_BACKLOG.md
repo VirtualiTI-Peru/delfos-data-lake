@@ -13,7 +13,7 @@ Entidades con pipeline **completo** (Initialize → Insert → Update → Gold �
 | SegmentosMkt | Implementado |
 | SubCanalesMkt | Implementado |
 | PersCom (EPersCom) | Implementado |
-| RutasVenta (ERutasVenta) | Implementado. Clave `idRuta`. `IdRutaAuto` se regenera en cada extracción y el Update no lo compara |
+| RutasVenta (ERutasVenta) | Implementado. Clave `idSucursal` + `idFuerzaVentas` + `idRuta` + `idPersonal`. Si bronze repite la clave, queda la de `anulado = 0`. `fechaDesde` y `fechaHasta` llegan como nvarchar y silver las escribe como datetime. `IdRutaAuto` se regenera en cada extracción y el Update no lo compara. `anulado` viene de Chess; si la asignación desaparece del snapshot, `silver.spRutasVenta_Anular` la marca |
 | ClientesRuta (EClientesRuta) | Implementado. Clave `idCliente` + `idRuta`. `idRuta` se resuelve con `bronze.ERutasVenta` por `IdRutaAuto` de la misma extracción. `anulado` solo existe en silver/gold |
 | Clifuerza (EClifuerza) | Implementado. Clave `idSucursal` + `idCliente` + `idFuerzaVentas` + `idRuta`. `idFuerzaVentas` no identifica la fila (varios clientes comparten la fuerza). Si bronze repite la clave, queda la de `anulado = 0`. `anulado` viene de Chess; si la asignación desaparece del snapshot, `silver.spClifuerza_Anular` la marca. `perioricidadEntrega` conserva el nombre de Chess |
 | CuotaVentas | Implementado (job.spSyncCuotaVentas, origen delfos-api) |
