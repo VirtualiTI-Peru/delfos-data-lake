@@ -34,8 +34,8 @@ BEGIN
 					q.periodo,
 					q.cuota_calculada,
 					q.cuota,
-					CAST(LEFT(q.periodo, 4) AS int) AS [Year],
-					CAST(SUBSTRING(q.periodo, 6, 2) AS int) AS [Month],
+					q.[Year],
+					q.[Month],
 					' + CAST(@Version AS VARCHAR(10)) + ' AS Ver
 				FROM bronze.CuotaCobertura q
 				INNER JOIN gold.CuotaCobertura g

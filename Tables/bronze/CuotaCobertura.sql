@@ -3,7 +3,9 @@ CREATE EXTERNAL TABLE bronze.CuotaCobertura(
 	idPersonal int,
 	periodo nchar(7),
 	cuota_calculada decimal(18, 2),
-	cuota decimal(18, 2)
+	cuota decimal(18, 2),
+	[Year] int,
+	[Month] int
 )
 WITH (
     LOCATION = 'chess/objetivos_files/cobertura/',
