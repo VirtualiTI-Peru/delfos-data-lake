@@ -3,6 +3,7 @@
   Cartera: ignora asignaciones anuladas y solo devuelve cargo VENDEDOR.
   Ventas: ultima Ver por linea, leyendo solo los meses del rango
   (filepath sobre Year/Month; un mes sin carpeta no aporta filas).
+  Cuotas del mes de @FechaIni: suma de cuota por agrupacion y cuota_calculada.
 */
 CREATE OR ALTER PROCEDURE frontend.spGetMetricasPorVendedor
 (
@@ -274,6 +275,32 @@ BEGIN
             v.idFuerzaVentas,
             v.idVendedor
         HAVING SUM(v.subtotalFinal) > 0
+    ),
+    CuotaVentas_Vendedor AS
+    (
+        SELECT
+            q.idSucursal,
+            q.idPersonal,
+            SUM(q.cuota) AS CuotaVentas
+        FROM gold.CuotaVentas AS q
+        WHERE q.[Year] = YEAR(@FechaIni)
+          AND q.[Month] = MONTH(@FechaIni)
+        GROUP BY
+            q.idSucursal,
+            q.idPersonal
+    ),
+    CuotaCobertura_Vendedor AS
+    (
+        SELECT
+            q.idSucursal,
+            q.idPersonal,
+            SUM(q.cuota_calculada) AS CuotaCobertura
+        FROM gold.CuotaCobertura AS q
+        WHERE q.[Year] = YEAR(@FechaIni)
+          AND q.[Month] = MONTH(@FechaIni)
+        GROUP BY
+            q.idSucursal,
+            q.idPersonal
     )
     SELECT
         p.idSucursal,
@@ -284,7 +311,9 @@ BEGIN
         c.Cartera,
         c.Visitas_Programadas,
         v.NumeroDeVentas,
-        v.subtotalFinal
+        v.subtotalFinal,
+        qv.CuotaVentas,
+        qc.CuotaCobertura
     FROM gold.PersCom AS p
     LEFT JOIN Ventas_Vendedor AS v
         ON v.idSucursal = p.idSucursal
@@ -294,6 +323,12 @@ BEGIN
         ON c.idSucursal = p.idSucursal
        AND c.idFuerzaVentas = p.idFuerzaVentas
        AND c.idPersonal = p.idPersonal
+    LEFT JOIN CuotaVentas_Vendedor AS qv
+        ON qv.idSucursal = p.idSucursal
+       AND qv.idPersonal = p.idPersonal
+    LEFT JOIN CuotaCobertura_Vendedor AS qc
+        ON qc.idSucursal = p.idSucursal
+       AND qc.idPersonal = p.idPersonal
     WHERE p.cargo = ''VENDEDOR'';';
     print @sql
     EXEC sp_executesql
