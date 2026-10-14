@@ -1,8 +1,9 @@
 /*
-  Domingo = 1, independiente de @@DATEFIRST.
-  Cartera: ignora asignaciones anuladas y solo devuelve cargo VENDEDOR.
-  Ventas: ultima Ver por linea, leyendo solo los meses del rango
-  (filepath sobre Year/Month; un mes sin carpeta no aporta filas).
+  Misma firma y mismas columnas que frontend.spGetMetricasPorVendedor.
+  Cartera y cuotas no cambian.
+  Ventas salen de agg.VentasVendedorDiario (ultima Ver, no anulados, ya
+  agregados por dia). La fuerza se toma de gold.PersCom: en ldh_pauser
+  cada vendedor tiene una sola fuerza por sucursal.
   Cuotas del mes de @FechaIni: suma de cuota por agrupacion y cuota_calculada.
 */
 CREATE OR ALTER PROCEDURE frontend.spGetMetricasPorVendedor
@@ -65,31 +66,6 @@ BEGIN
         @CantDia7 = MAX(CASE WHEN DiaSemana = 7 THEN CantDias END)
     FROM Dias;
 
-    DECLARE @Year int = YEAR(@FechaIni);
-    DECLARE @Month int = MONTH(@FechaIni);
-    DECLARE @EndKey int = YEAR(@FechaFin) * 100 + MONTH(@FechaFin);
-    DECLARE @MonthFilter nvarchar(max) = N'';
-
-    WHILE (@Year * 100 + @Month) <= @EndKey
-    BEGIN
-        IF @MonthFilter <> N''
-            SET @MonthFilter += N' OR ';
-
-        SET @MonthFilter += N'(src.filepath(1) = ''' + CAST(@Year AS varchar(4))
-            + N''' AND src.filepath(2) = ''' + CAST(@Month AS varchar(2)) + N''')';
-
-        SET @Month += 1;
-        IF @Month > 12
-        BEGIN
-            SET @Month = 1;
-            SET @Year += 1;
-        END
-    END
-
-    IF @MonthFilter = N''
-        SET @MonthFilter = N'1 = 0';
-
-    DECLARE @Sql nvarchar(max) = N'
     ;WITH Vendedor_Clientes AS
     (
         SELECT
@@ -97,7 +73,7 @@ BEGIN
             cf.idFuerzaVentas,
             rv.idPersonal,
             cf.idCliente,
-            REPLACE(LTRIM(RTRIM(rv.diasVisita)), '' '', '''') AS diasVisita
+            REPLACE(LTRIM(RTRIM(rv.diasVisita)), ' ', '') AS diasVisita
         FROM gold.Clifuerza AS cf
         INNER JOIN gold.RutasVenta AS rv
             ON rv.idSucursal = cf.idSucursal
@@ -108,7 +84,7 @@ BEGIN
           AND ISNULL(cf.anulado, 0) = 0
           AND rv.anulado = 0
           AND rv.idPersonal NOT IN (0, 999)
-          AND NULLIF(LTRIM(RTRIM(rv.diasVisita)), '''') IS NOT NULL
+          AND NULLIF(LTRIM(RTRIM(rv.diasVisita)), '') IS NOT NULL
     ),
     Vendedor_Clientes_Dia AS
     (
@@ -119,7 +95,7 @@ BEGIN
             vc.idCliente,
             TRY_CAST(s.value AS int) AS DiaSemana
         FROM Vendedor_Clientes AS vc
-        CROSS APPLY STRING_SPLIT(vc.diasVisita, '','') AS s
+        CROSS APPLY STRING_SPLIT(vc.diasVisita, ',') AS s
         WHERE TRY_CAST(s.value AS int) BETWEEN 1 AND 7
         GROUP BY
             vc.idSucursal,
@@ -154,125 +130,19 @@ BEGIN
             vcd.idFuerzaVentas,
             vcd.idPersonal
     ),
-    Ventas_Origen AS
-    (
-        SELECT
-            src.idSucursal,
-            src.idFuerzaVentas,
-            src.idVendedor,
-            src.idCliente,
-            src.idDocumento,
-            src.letra,
-            src.serie,
-            src.nrodoc,
-            src.fechaComprobate,
-            src.anulado,
-            src.subtotalFinal,
-            src.Ver,
-            src.idEmpresa,
-            src.idLinea,
-            src.idArticulo
-        FROM OPENROWSET(
-            BULK ''chess/parquet_files/ventasresumen/Year=*/Month=*/Day=*/Ver=*/*/*.parquet'',
-            DATA_SOURCE = ''eds_delfos'',
-            FORMAT = ''PARQUET''
-        ) WITH (
-            idSucursal int,
-            idFuerzaVentas int,
-            idVendedor int,
-            idCliente int,
-            idDocumento nvarchar(10),
-            letra nvarchar(2),
-            serie int,
-            nrodoc int,
-            fechaComprobate datetime,
-            anulado bit,
-            subtotalFinal decimal(14, 4),
-            Ver int,
-            idEmpresa int,
-            idLinea int,
-            idArticulo int
-        ) AS src
-        WHERE src.Ver <> 0
-          AND src.fechaComprobate >= @FechaIni
-          AND src.fechaComprobate < @FechaFinExcl
-          AND (' + @MonthFilter + N')
-    ),
-    Ventas_Vigente AS
-    (
-        SELECT
-            d.idSucursal,
-            d.idFuerzaVentas,
-            d.idVendedor,
-            d.idCliente,
-            d.idDocumento,
-            d.letra,
-            d.serie,
-            d.nrodoc,
-            d.fechaComprobate,
-            d.subtotalFinal
-        FROM
-        (
-            SELECT
-                o.idSucursal,
-                o.idFuerzaVentas,
-                o.idVendedor,
-                o.idCliente,
-                o.idDocumento,
-                o.letra,
-                o.serie,
-                o.nrodoc,
-                o.fechaComprobate,
-                o.anulado,
-                o.subtotalFinal,
-                ROW_NUMBER() OVER (
-                    PARTITION BY ISNULL(o.letra, ''''), o.serie, o.nrodoc, o.idDocumento,
-                                 o.idSucursal, o.idEmpresa, o.idLinea, o.idArticulo
-                    ORDER BY o.Ver DESC
-                ) AS rn
-            FROM Ventas_Origen AS o
-        ) AS d
-        WHERE d.rn = 1
-          AND d.idVendedor IS NOT NULL
-          AND ISNULL(d.anulado, 0) = 0
-    ),
-    Ventas_Vendedor_Diario AS
-    (
-        SELECT
-            v.idSucursal,
-            v.idFuerzaVentas,
-            v.idVendedor,
-            v.idCliente,
-            v.idDocumento,
-            v.letra,
-            v.serie,
-            v.nrodoc,
-            v.fechaComprobate,
-            SUM(v.subtotalFinal) AS subtotalFinal
-        FROM Ventas_Vigente AS v
-        GROUP BY
-            v.idSucursal,
-            v.idFuerzaVentas,
-            v.idVendedor,
-            v.idCliente,
-            v.idDocumento,
-            v.letra,
-            v.serie,
-            v.nrodoc,
-            v.fechaComprobate
-    ),
     Ventas_Vendedor AS
     (
         SELECT
             v.idSucursal,
-            v.idFuerzaVentas,
             v.idVendedor,
-            COUNT(*) AS NumeroDeVentas,
+            SUM(v.nroComprobantes) AS NumeroDeVentas,
             SUM(v.subtotalFinal) AS subtotalFinal
-        FROM Ventas_Vendedor_Diario AS v
+        FROM agg.VentasVendedorDiario AS v
+        WHERE v.fecha >= @FechaIni
+          AND v.fecha < @FechaFinExcl
+          AND v.idVendedor IS NOT NULL
         GROUP BY
             v.idSucursal,
-            v.idFuerzaVentas,
             v.idVendedor
         HAVING SUM(v.subtotalFinal) > 0
     ),
@@ -304,20 +174,21 @@ BEGIN
     )
     SELECT
         p.idSucursal,
+        p.desSucursal,
         p.idFuerzaVentas,
         p.desFuerzaVentas,
+        p.desPersonalSuperior,
         p.idPersonal,
         p.desPersonal,
-        c.Cartera,
-        c.Visitas_Programadas,
-        v.NumeroDeVentas,
-        v.subtotalFinal,
-        qv.CuotaVentas,
-        qc.CuotaCobertura
+        ISNULL(c.Cartera, 0) AS Cartera,
+        ISNULL(c.Visitas_Programadas, 0) AS Visitas_Programadas,
+        ISNULL(v.NumeroDeVentas, 0) AS NumeroDeVentas,
+        ISNULL(v.subtotalFinal, 0) AS subtotalFinal,
+        ISNULL(qv.CuotaVentas, 0) AS CuotaVentas,
+        ISNULL(qc.CuotaCobertura, 0) AS CuotaCobertura
     FROM gold.PersCom AS p
     LEFT JOIN Ventas_Vendedor AS v
         ON v.idSucursal = p.idSucursal
-       AND v.idFuerzaVentas = p.idFuerzaVentas
        AND v.idVendedor = p.idPersonal
     LEFT JOIN Cartera_Vendedor AS c
         ON c.idSucursal = p.idSucursal
@@ -329,19 +200,6 @@ BEGIN
     LEFT JOIN CuotaCobertura_Vendedor AS qc
         ON qc.idSucursal = p.idSucursal
        AND qc.idPersonal = p.idPersonal
-    WHERE p.cargo = ''VENDEDOR'';';
-    print @sql
-    EXEC sp_executesql
-        @Sql,
-        N'@FechaIni date, @FechaFinExcl date, @CantDia1 int, @CantDia2 int, @CantDia3 int, @CantDia4 int, @CantDia5 int, @CantDia6 int, @CantDia7 int',
-        @FechaIni = @FechaIni,
-        @FechaFinExcl = @FechaFinExcl,
-        @CantDia1 = @CantDia1,
-        @CantDia2 = @CantDia2,
-        @CantDia3 = @CantDia3,
-        @CantDia4 = @CantDia4,
-        @CantDia5 = @CantDia5,
-        @CantDia6 = @CantDia6,
-        @CantDia7 = @CantDia7;
+    WHERE p.cargo = 'VENDEDOR';
 END
 GO
