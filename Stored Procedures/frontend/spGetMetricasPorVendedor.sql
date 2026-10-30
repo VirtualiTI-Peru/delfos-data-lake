@@ -1,9 +1,11 @@
 /*
   Misma firma y mismas columnas que frontend.spGetMetricasPorVendedor.
   Cartera y cuotas no cambian.
-  Ventas salen de agg.VentasVendedorDiario (ultima Ver, no anulados, ya
-  agregados por dia). La fuerza se toma de gold.PersCom: en ldh_pauser
-  cada vendedor tiene una sola fuerza por sucursal.
+  Ventas y cobertura salen de agg.VentasVendedorClienteDiario (ultima Ver,
+  no anulados, una fila por cliente y dia). Cobertura es clientes distintos
+  del rango: vender varias veces al mismo cliente cuenta una vez. La fuerza
+  se toma de gold.PersCom: en ldh_pauser cada vendedor tiene una sola fuerza
+  por sucursal.
   Cuotas del mes de @FechaIni: suma de cuota por agrupacion y cuota_calculada.
 */
 CREATE OR ALTER PROCEDURE frontend.spGetMetricasPorVendedor
@@ -136,8 +138,9 @@ BEGIN
             v.idSucursal,
             v.idVendedor,
             SUM(v.nroComprobantes) AS NumeroDeVentas,
-            SUM(v.subtotalFinal) AS subtotalFinal
-        FROM agg.VentasVendedorDiario AS v
+            SUM(v.subtotalFinal) AS subtotalFinal,
+            COUNT(DISTINCT v.idCliente) AS Cobertura
+        FROM agg.VentasVendedorClienteDiario AS v
         WHERE v.fecha >= @FechaIni
           AND v.fecha < @FechaFinExcl
           AND v.idVendedor IS NOT NULL
@@ -183,6 +186,7 @@ BEGIN
         ISNULL(c.Cartera, 0) AS Cartera,
         ISNULL(c.Visitas_Programadas, 0) AS Visitas_Programadas,
         ISNULL(v.NumeroDeVentas, 0) AS NumeroDeVentas,
+        ISNULL(v.Cobertura, 0) AS Cobertura,
         ISNULL(v.subtotalFinal, 0) AS subtotalFinal,
         ISNULL(qv.CuotaVentas, 0) AS CuotaVentas,
         ISNULL(qc.CuotaCobertura, 0) AS CuotaCobertura

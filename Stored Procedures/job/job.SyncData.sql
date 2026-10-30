@@ -43,6 +43,7 @@ BEGIN
 	INSERT INTO #TempTable EXEC silver.spClifuerza_Update
 	INSERT INTO #TempTable EXEC silver.spClifuerza_Anular
 	INSERT INTO #TempTable EXEC agg.spVentasVendedorDiario_Refresh
+	INSERT INTO #TempTable EXEC agg.spVentasVendedorClienteDiario_Refresh
 
 	DECLARE @LogStartDate DATETIME
 	DECLARE @LogProcedureName VARCHAR(128)

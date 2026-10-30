@@ -1,16 +1,22 @@
 CREATE OR ALTER PROCEDURE dbo.usp_GetDiasLaborables
-    @Anio int,
-    @Mes int,
-    @FechaConsulta date = NULL
+    @FecIni date = NULL,
+    @FecFin date = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF @FechaConsulta IS NULL
-    BEGIN
-        SET @FechaConsulta =
-            CONVERT(date, SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'SA Pacific Standard Time');
-    END;
+    DECLARE @Hoy date =
+        CONVERT(date, SYSUTCDATETIME() AT TIME ZONE 'UTC' AT TIME ZONE 'SA Pacific Standard Time');
+
+    IF @FecIni IS NULL
+        SET @FecIni = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
+
+    IF @FecFin IS NULL
+        SET @FecFin = @Hoy;
+
+    DECLARE @Anio int = YEAR(@FecIni);
+    DECLARE @Mes int = MONTH(@FecIni);
+    DECLARE @FechaConsulta date = @FecFin;
 
     DECLARE @InicioMes date = DATEFROMPARTS(@Anio, @Mes, 1);
     DECLARE @FinMes    date = EOMONTH(@InicioMes);
@@ -30,14 +36,24 @@ BEGIN
         FROM [gold].[DiasNoLaborables]
         WHERE fecha >= @InicioMes
           AND fecha < DATEADD(DAY, 1, @FinMes)
+    ),
+    Dias as
+    (
+        SELECT
+            DiasNoLaborablesMes,
+            DAY(@FinMes) - DiasNoLaborablesMes AS DiasLaborablesMes,
+            CASE
+                WHEN @FechaCorte < @InicioMes THEN 0
+                ELSE DATEDIFF(DAY, @InicioMes, @FechaCorte) + 1 - DiasNoLaborablesTranscurridos
+            END AS DiasLaborablesTranscurridos
+        FROM Resumen
     )
-    SELECT
+    SELECT 
+        DiasLaborablesMes,
+        DiasLaborablesTranscurridos,
         DiasNoLaborablesMes,
-        DAY(@FinMes) - DiasNoLaborablesMes AS DiasLaborablesMes,
-        CASE
-            WHEN @FechaCorte < @InicioMes THEN 0
-            ELSE DATEDIFF(DAY, @InicioMes, @FechaCorte) + 1 - DiasNoLaborablesTranscurridos
-        END AS DiasLaborablesTranscurridos
-    FROM Resumen;
+        DiasLaborablesMes - DiasLaborablesTranscurridos AS DiasRestantes,
+        CAST(DiasLaborablesTranscurridos AS DECIMAL) / CAST(DiasLaborablesMes AS DECIMAL) as ComparativoPct
+     FROM Dias
 END;
 GO

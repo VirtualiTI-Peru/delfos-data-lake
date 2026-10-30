@@ -1,23 +1,8 @@
-CREATE OR ALTER VIEW gold.PersCom
+CREATE OR ALTER VIEW gold.Sucursal
 AS
-SELECT
+SELECT DISTINCT
 	a.idSucursal,
-	a.desSucursal,
-	a.idPersonal,
-	a.desPersonal,
-	a.idFuerzaVentas,
-	a.desFuerzaVentas,
-	a.cargo,
-	a.tipoVenta,
-	a.idPersonalSuperior,
-	a.desPersonalSuperior,
-	a.domicilio,
-	a.telefono,
-	a.fechaNacimiento,
-	a.usuarioSistema,
-	a.idTipoSegmento,
-	a.desTipoSegmento,
-	a.Ver
+	a.desSucursal
 FROM silver.PersCom a
 WHERE a.Ver <> 0
   AND a.Ver = (

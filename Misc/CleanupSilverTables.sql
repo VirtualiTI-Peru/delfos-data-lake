@@ -15,8 +15,12 @@ DROP VIEW IF EXISTS [gold].[DiasNoLaborables];
 DROP VIEW IF EXISTS [gold].[RutasVenta];
 DROP VIEW IF EXISTS [gold].[ClientesRuta];
 DROP VIEW IF EXISTS [gold].[Clifuerza];
+DROP VIEW IF EXISTS [gold].[Gerente]
+DROP VIEW IF EXISTS [gold].[Sucursal]
+DROP VIEW IF EXISTS [gold].[Supervisor]
+DROP VIEW IF EXISTS [gold].[Vendedor]
 
-DROP VIEW IF EXISTS [agg].[VentasVendedorDiario];
+--DROP VIEW IF EXISTS [agg].[VentasVendedorDiario];
 IF EXISTS (SELECT 1 FROM sys.external_tables WHERE object_id = OBJECT_ID('agg.VentasVendedorDiario'))
 	DROP EXTERNAL TABLE [agg].[VentasVendedorDiario];
 
@@ -33,6 +37,24 @@ BEGIN
 		FROM sys.external_tables et
 		INNER JOIN sys.schemas s ON s.schema_id = et.schema_id
 		WHERE s.name = 'agg' AND et.name LIKE 'VentasVendedorDiario[_]%');
+END
+
+IF EXISTS (SELECT 1 FROM sys.external_tables WHERE object_id = OBJECT_ID('agg.VentasVendedorClienteDiario'))
+	DROP EXTERNAL TABLE [agg].[VentasVendedorClienteDiario];
+
+SET @MartTable = (
+	SELECT TOP 1 CONCAT('agg.', et.name)
+	FROM sys.external_tables et
+	INNER JOIN sys.schemas s ON s.schema_id = et.schema_id
+	WHERE s.name = 'agg' AND et.name LIKE 'VentasVendedorClienteDiario[_]%');
+WHILE @MartTable IS NOT NULL
+BEGIN
+	EXEC helpers.DropExternalTable @MartTable;
+	SET @MartTable = (
+		SELECT TOP 1 CONCAT('agg.', et.name)
+		FROM sys.external_tables et
+		INNER JOIN sys.schemas s ON s.schema_id = et.schema_id
+		WHERE s.name = 'agg' AND et.name LIKE 'VentasVendedorClienteDiario[_]%');
 END
 
 DROP EXTERNAL TABLE [logs].[Log];

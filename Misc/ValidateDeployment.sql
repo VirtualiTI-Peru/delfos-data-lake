@@ -88,6 +88,8 @@ INSERT INTO @Errors SELECT 'logs.Log table', CASE WHEN OBJECT_ID('logs.Log', 'ET
 -- Agg
 INSERT INTO @Errors SELECT 'agg.VentasVendedorDiario', CASE WHEN OBJECT_ID('agg.VentasVendedorDiario', 'V') IS NOT NULL THEN 'OK' ELSE 'WARN' END, 'Se crea en la primera ejecución de agg.spVentasVendedorDiario_Refresh';
 INSERT INTO @Errors SELECT 'agg.spVentasVendedorDiario_Refresh', CASE WHEN OBJECT_ID('agg.spVentasVendedorDiario_Refresh', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
+INSERT INTO @Errors SELECT 'agg.VentasVendedorClienteDiario', CASE WHEN OBJECT_ID('agg.VentasVendedorClienteDiario', 'ET') IS NOT NULL THEN 'OK' ELSE 'WARN' END, 'Se crea en la primera ejecución de agg.spVentasVendedorClienteDiario_Refresh';
+INSERT INTO @Errors SELECT 'agg.spVentasVendedorClienteDiario_Refresh', CASE WHEN OBJECT_ID('agg.spVentasVendedorClienteDiario_Refresh', 'P') IS NOT NULL THEN 'OK' ELSE 'FAIL' END, '';
 
 -- Conectividad ADLS (opcional, puede fallar si no hay datos)
 BEGIN TRY
